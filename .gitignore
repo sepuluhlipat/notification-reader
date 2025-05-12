@@ -1,0 +1,6 @@
+test-*.ipynb
+test-*.py
+
+*.csv
+*.txt
+*.xlsx
