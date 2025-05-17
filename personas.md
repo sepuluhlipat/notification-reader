@@ -1,16 +1,31 @@
+# Budget Categories by Persona
 
-### Personas
-- students
-- young professionals
-- household budgeters
-- retirees
-- freelancers
-- small business owners
-### Budget Categories by Persona
+This repository contains budget categories and financial planning resources tailored for different persona types.
 
-Simple visualization of essential budget categories for different user personas.
+## Table of Contents
 
-##### 📚 Student
+- [Personas Overview](#personas-overview)
+- [Budget Categories by Persona](#budget-categories-by-persona)
+    - [Student](#-student)
+    - [Young Professional](#-young-professional)
+    - [Household](#-household)
+    - [Retiree](#-retiree)
+    - [Freelancer](#-freelancer)
+    - [Small Business](#-small-business)
+- [Detailed Budget Category Dictionary](#detailed-budget-category-dictionary)
+
+## Personas Overview
+
+- 📚 **Students**: College/university students managing limited resources
+- 💼 **Young Professionals**: Early-career individuals establishing financial independence
+- 🏠 **Household Budgeters**: Families managing shared resources and responsibilities
+- 👵 **Retirees**: Individuals managing fixed incomes and healthcare costs
+- 🖥️ **Freelancers**: Self-employed individuals with variable income streams
+- 🏪 **Small Business Owners**: Managing business and personal finances
+
+## Budget Categories by Persona
+
+### 📚 Student
 
 ```mermaid
 mindmap
@@ -36,7 +51,17 @@ mindmap
       Student loans
 ```
 
-##### 💼 Young Professional
+**Student Categories in Detail:**
+
+- **Education**: Tuition, Textbooks, Course materials, Supplies
+- **Housing**: Rent, Utilities, Dorm fees
+- **Food**: Meal plan, Groceries, Dining out
+- **Transport**: Bus pass, Rideshare, Fuel
+- **Personal**: Hygiene, Laundry, Clothing
+- **Income**: Scholarship, Part-time work, Allowance, TA position
+- **Savings/Debt**: Emergency fund, Student loans, Credit card
+
+### 💼 Young Professional
 
 ```mermaid
 mindmap
@@ -61,7 +86,17 @@ mindmap
       Savings
 ```
 
-##### 🏠 Household
+**Young Professional Categories in Detail:**
+
+- **Housing**: Rent/Mortgage, Utilities, Insurance, Furnishing
+- **Food**: Groceries, Takeout, Coffee, Work lunch
+- **Transport**: Car payment, Public transit, Rideshare, Fuel
+- **Career**: Development, Certification, Networking, Work attire
+- **Health**: Insurance, Gym, Medical expenses
+- **Lifestyle**: Entertainment, Travel, Hobbies, Clothing
+- **Financial**: Investments, Debt payments, Taxes, Savings
+
+### 🏠 Household
 
 ```mermaid
 mindmap
@@ -86,7 +121,17 @@ mindmap
       Future goals
 ```
 
-##### 👵 Retiree
+**Household Categories in Detail:**
+
+- **Housing**: Mortgage/Rent, Maintenance, Property tax
+- **Utilities**: Electricity, Water, Gas, Internet, Phone
+- **Food**: Groceries, Dining out, School lunches
+- **Family**: Childcare, Education, Activities, Clothing
+- **Transport**: Car payments, Insurance, Fuel, Maintenance
+- **Health**: Insurance, Medical expenses, Prescriptions
+- **Financial**: Debt payments, Emergency fund, College fund, Retirement
+
+### 👵 Retiree
 
 ```mermaid
 mindmap
@@ -112,7 +157,17 @@ mindmap
       Healthcare savings
 ```
 
-##### 🖥️ Freelancer
+**Retiree Categories in Detail:**
+
+- **Housing**: Mortgage/Rent, Property tax, Maintenance, Retirement community
+- **Healthcare**: Medicare, Prescriptions, Doctor visits, Specialists
+- **Daily Living**: Groceries, Household supplies, Personal care, Home help
+- **Leisure**: Travel, Hobbies, Dining out, Entertainment
+- **Transport**: Car expenses, Insurance, Senior transport
+- **Income**: Social Security, Pension, Retirement accounts, Investments
+- **Financial**: Estate planning, Insurance, Tax planning, Gifts
+
+### 🖥️ Freelancer
 
 ```mermaid
 mindmap
@@ -137,7 +192,17 @@ mindmap
       Business liability
 ```
 
-##### 🏪 Small Business
+**Freelancer Categories in Detail:**
+
+- **Business**: Software, Equipment, Workspace, Subscriptions
+- **Professional**: Development, Marketing, Networking, Certifications
+- **Income**: Project payments, Contracts, Retainers, Royalties
+- **Taxes**: Estimated taxes, Self-employment tax, Deductions
+- **Insurance**: Health insurance, Business insurance, Liability
+- **Personal**: Salary draw, Living expenses, Personal transfers
+- **Savings**: Retirement, Emergency fund, Business expansion
+
+### 🏪 Small Business
 
 ```mermaid
 mindmap
@@ -163,8 +228,19 @@ mindmap
       Payroll taxes
 ```
 
-### Budget Category Dictionary
+**Small Business Categories in Detail:**
 
+- **Operations**: Rent, Utilities, Equipment, Software, Supplies
+- **Staff**: Salaries, Benefits, Training, Recruitment
+- **Marketing**: Advertising, Website, Events, Branding
+- **Inventory**: Product purchases, Materials, Shipping, Manufacturing
+- **Professional**: Accounting, Legal, Banking fees, Consulting
+- **Taxes/Insurance**: Income tax, Payroll tax, Liability, Property insurance
+- **Revenue**: Sales, Service income, Contracts, Subscriptions
+
+## Detailed Budget Category Dictionary
+
+```python
 budget_categories = {
     "Student": {
         "Education": ["Tuition", "Textbooks", "Course materials", "Supplies"],
@@ -221,9 +297,13 @@ budget_categories = {
         "Revenue": ["Sales", "Service income", "Contracts", "Subscriptions"]
     }
 }
+```
 
-### Detailed mind map
+## Appendix: Detailed Mind Maps
 
+<details> <summary>Click to expand detailed mind maps</summary>
+
+### Student (Detailed)
 
 ```mermaid
 mindmap
@@ -257,6 +337,8 @@ mindmap
             id8-2[Student loans]
             id8-3[Credit card]
 ```
+
+### Young Professional (Detailed)
 
 ```mermaid
 mindmap
@@ -297,6 +379,8 @@ mindmap
             id8-4[Savings]
 ```
 
+### Household (Detailed)
+
 ```mermaid
 mindmap
     id1((Household))
@@ -334,6 +418,8 @@ mindmap
             id8-3[College fund]
             id8-4[Retirement]
 ```
+
+### Retiree (Detailed)
 
 ```mermaid
 mindmap
@@ -374,6 +460,8 @@ mindmap
             id8-4[Gifts]
 ```
 
+### Freelancer (Detailed)
+
 ```mermaid
 mindmap
     id1((Freelancer))
@@ -409,6 +497,8 @@ mindmap
             id8-2[Emergency fund]
             id8-3[Business expansion]
 ```
+
+### Small Business (Detailed)
 
 ```mermaid
 mindmap
@@ -450,3 +540,5 @@ mindmap
             id8-3[Events]
             id8-4[Branding]
 ```
+
+</details>
