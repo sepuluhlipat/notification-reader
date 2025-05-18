@@ -4,3 +4,6 @@ test-*.py
 *.csv
 *.txt
 *.xlsx
+
+__pycache__/
+*.pyc
