@@ -1,6 +1,23 @@
 {
-  "transport": ["blue bird", "gojek ride", "grab", "taxi", "uber"],
-  "food": ["gofood", "grabfood", "food delivery"],
-  "shopping": ["tokopedia", "shopee", "lazada", "amazon"],
-  "finance": ["gopay", "jenius"]
+  "transport": [
+    "blue bird",
+    "gojek ride",
+    "grab",
+    "taxi",
+    "uber"
+  ],
+  "food": [
+    "gofood",
+    "grabfood"
+  ],
+  "shopping": [
+    "tokopedia",
+    "shopee",
+    "lazada",
+    "amazon"
+  ],
+  "finance": [
+    "gopay",
+    "jenius"
+  ]
 }

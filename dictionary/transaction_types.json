@@ -1,6 +1,36 @@
 {
-  "income": ["received", "receive", "refund", "cashback", "payment from", "transfer from", "credit", "deposit", "bonus", "salary", "reimbursement"],
-  "expense": ["paid", "payment to", "sent", "pay", "purchase", "bought", "deducted", "bought", "charged", "payment for", "subscription fee"],
-  "transfer": ["transfer", "send to", "sent to", "moved", "moving funds", "fund transfer"],
-  "top_up": ["top-up", "top up", "topup", "topped up", "reload", "reload balance", "add money", "added to wallet"]
+  "income": [
+    "received",
+    "refund",
+    "payment from",
+    "transfer from",
+    "credit",
+    "deposit",
+    "bonus",
+    "salary",
+    "reimbursement",
+    "cashback"
+  ],
+  "expense": [
+    "paid",
+    "payment to",
+    "sent",
+    "pay",
+    "purchase",
+    "bought",
+    "deducted",
+    "bought",
+    "charged",
+    "payment for",
+    "subscription fee",
+    "transfer to"
+  ],
+  "transfer": [
+    "transfer",
+    "send to",
+    "sent to",
+    "moved",
+    "moving funds",
+    "fund transfer"
+  ]
 }

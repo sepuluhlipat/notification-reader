@@ -1,67 +1,514 @@
 {
   "general": {
-    "food": ["food", "meal", "restaurant", "order", "menu", "eat", "lunch", "dinner", "breakfast", "gofood", "groceries", "dining"],
-    "transport": ["ride", "trip", "gocar", "grab", "transport", "travel", "driver", "gojek ride", "blue bird", "taxi", "fuel", "bus", "transit"],
-    "shopping": ["purchase", "buy", "shopping", "shop", "amazon", "store", "item", "product", "tokopedia", "shopee", "lazada"],
-    "entertainment": ["movie", "ticket", "entertainment", "game", "music", "streaming", "netflix", "spotify"],
-    "bills": ["bill", "utility", "electricity", "water", "internet", "phone", "subscription"],
-    "transfer": ["transfer", "send money", "receive money"],
-    "finance": ["gopay", "payment", "wallet", "jenius", "bank", "credit", "debit", "card", "saving", "investment", "insurance"],
-    "education": ["course", "class", "learning", "tuition", "school", "university", "books", "textbooks"],
-    "health": ["medicine", "doctor", "hospital", "health", "medical", "pharmacy", "prescription", "gym"]
+    "food": [
+      "food",
+      "meal",
+      "restaurant",
+      "order",
+      "menu",
+      "eat",
+      "lunch",
+      "dinner",
+      "breakfast",
+      "gofood",
+      "groceries",
+      "dining"
+    ],
+    "transport": [
+      "ride",
+      "trip",
+      "gocar",
+      "grab",
+      "transport",
+      "travel",
+      "driver",
+      "gojek ride",
+      "blue bird",
+      "taxi",
+      "fuel",
+      "bus",
+      "transit"
+    ],
+    "shopping": [
+      "purchase",
+      "buy",
+      "shopping",
+      "shop",
+      "amazon",
+      "store",
+      "item",
+      "product",
+      "tokopedia",
+      "shopee",
+      "lazada"
+    ],
+    "entertainment": [
+      "movie",
+      "ticket",
+      "entertainment",
+      "game",
+      "music",
+      "streaming",
+      "netflix",
+      "spotify"
+    ],
+    "bills": [
+      "bill",
+      "utility",
+      "electricity",
+      "water",
+      "internet",
+      "phone",
+      "subscription"
+    ],
+    "transfer": [
+      "transfer",
+      "send money",
+      "receive money"
+    ],
+    "finance": [
+      "gopay",
+      "payment",
+      "wallet",
+      "jenius",
+      "bank",
+      "credit",
+      "debit",
+      "card",
+      "saving",
+      "investment",
+      "insurance"
+    ],
+    "education": [
+      "course",
+      "class",
+      "learning",
+      "tuition",
+      "school",
+      "university",
+      "books",
+      "textbooks",
+      "specialization"
+    ],
+    "health": [
+      "medicine",
+      "doctor",
+      "hospital",
+      "health",
+      "medical",
+      "pharmacy",
+      "prescription",
+      "gym"
+    ]
   },
   "student": {
-    "education": ["tuition", "textbooks", "course materials", "supplies", "class", "university", "school", "college", "books", "study", "library"],
-    "housing": ["rent", "utilities", "dorm fees", "apartment", "accommodation", "electricity", "water", "dormitory"],
-    "food": ["meal plan", "groceries", "dining out", "cafeteria", "canteen", "fast food", "restaurant", "gofood"],
-    "transport": ["bus pass", "rideshare", "fuel", "transit", "subway", "train", "grab", "gocar", "commute"],
-    "personal": ["hygiene", "laundry", "clothing", "apparel", "toiletries", "personal care", "haircut"],
-    "income": ["scholarship", "part-time work", "allowance", "ta position", "grant", "stipend", "award", "fellowship"],
-    "savings": ["emergency fund", "student loans", "credit card", "debt", "savings", "bank"]
+    "education": [
+      "tuition",
+      "textbooks",
+      "course materials",
+      "supplies",
+      "class",
+      "university",
+      "school",
+      "college",
+      "books",
+      "study",
+      "library"
+    ],
+    "housing": [
+      "rent",
+      "utilities",
+      "dorm fees",
+      "apartment",
+      "accommodation",
+      "electricity",
+      "water",
+      "dormitory"
+    ],
+    "food": [
+      "meal plan",
+      "groceries",
+      "dining out",
+      "cafeteria",
+      "canteen",
+      "fast food",
+      "restaurant",
+      "gofood"
+    ],
+    "transport": [
+      "bus pass",
+      "rideshare",
+      "fuel",
+      "transit",
+      "subway",
+      "train",
+      "grab",
+      "gocar",
+      "commute"
+    ],
+    "personal": [
+      "hygiene",
+      "laundry",
+      "clothing",
+      "apparel",
+      "toiletries",
+      "personal care",
+      "haircut"
+    ],
+    "income": [
+      "scholarship",
+      "part-time work",
+      "allowance",
+      "ta position",
+      "grant",
+      "stipend",
+      "award",
+      "fellowship"
+    ],
+    "savings": [
+      "emergency fund",
+      "student loans",
+      "credit card",
+      "debt",
+      "savings",
+      "bank"
+    ],
+    "fitness": [
+      "gym membership",
+      "suppliments",
+      "gear",
+      "personal trainer"
+    ]
   },
   "young professional": {
-    "housing": ["rent", "mortgage", "utilities", "insurance", "furnishing", "furniture", "apartment", "condo", "electricity", "water"],
-    "food": ["groceries", "takeout", "coffee", "work lunch", "restaurant", "dining", "meal", "gofood", "grabfood"],
-    "transport": ["car payment", "public transit", "rideshare", "fuel", "grab", "uber", "gocar", "taxi", "maintenance"],
-    "career": ["development", "certification", "networking", "work attire", "conference", "seminar", "books", "courses"],
-    "health": ["insurance", "gym", "medical expenses", "doctor", "healthcare", "medicine", "fitness", "therapy"],
-    "lifestyle": ["entertainment", "travel", "hobbies", "clothing", "movies", "concert", "shopping", "subscription", "streaming"],
-    "financial": ["investments", "debt payments", "taxes", "savings", "stocks", "fund", "retirement", "loan", "credit card"]
+    "housing": [
+      "rent",
+      "mortgage",
+      "utilities",
+      "insurance",
+      "furnishing",
+      "furniture",
+      "apartment",
+      "condo",
+      "electricity",
+      "water"
+    ],
+    "food": [
+      "groceries",
+      "takeout",
+      "coffee",
+      "work lunch",
+      "restaurant",
+      "dining",
+      "meal",
+      "gofood",
+      "grabfood"
+    ],
+    "transport": [
+      "car payment",
+      "public transit",
+      "rideshare",
+      "fuel",
+      "grab",
+      "uber",
+      "gocar",
+      "taxi",
+      "maintenance"
+    ],
+    "career": [
+      "development",
+      "certification",
+      "networking",
+      "work attire",
+      "conference",
+      "seminar",
+      "books",
+      "courses"
+    ],
+    "health": [
+      "insurance",
+      "gym",
+      "medical expenses",
+      "doctor",
+      "healthcare",
+      "medicine",
+      "fitness",
+      "therapy"
+    ],
+    "lifestyle": [
+      "entertainment",
+      "travel",
+      "hobbies",
+      "clothing",
+      "movies",
+      "concert",
+      "shopping",
+      "subscription",
+      "streaming"
+    ],
+    "financial": [
+      "investments",
+      "debt payments",
+      "taxes",
+      "savings",
+      "stocks",
+      "fund",
+      "retirement",
+      "loan",
+      "credit card"
+    ]
   },
   "household": {
-    "housing": ["mortgage", "rent", "maintenance", "property tax", "repairs", "renovation", "home improvement"],
-    "utilities": ["electricity", "water", "gas", "internet", "phone", "cable", "garbage", "bill"],
-    "food": ["groceries", "dining out", "school lunches", "restaurant", "gofood", "meal", "takeout"],
-    "family": ["childcare", "education", "activities", "clothing", "toys", "school supplies", "children"],
-    "transport": ["car payments", "insurance", "fuel", "maintenance", "repair", "transit", "service"],
-    "health": ["insurance", "medical expenses", "prescriptions", "doctor", "dentist", "medicine", "healthcare"],
-    "financial": ["debt payments", "emergency fund", "college fund", "retirement", "savings", "investment", "loan"]
+    "housing": [
+      "mortgage",
+      "rent",
+      "maintenance",
+      "property tax",
+      "repairs",
+      "renovation",
+      "home improvement"
+    ],
+    "utilities": [
+      "electricity",
+      "water",
+      "gas",
+      "internet",
+      "phone",
+      "cable",
+      "garbage",
+      "bill"
+    ],
+    "food": [
+      "groceries",
+      "dining out",
+      "school lunches",
+      "restaurant",
+      "gofood",
+      "meal",
+      "takeout"
+    ],
+    "family": [
+      "childcare",
+      "education",
+      "activities",
+      "clothing",
+      "toys",
+      "school supplies",
+      "children"
+    ],
+    "transport": [
+      "car payments",
+      "insurance",
+      "fuel",
+      "maintenance",
+      "repair",
+      "transit",
+      "service"
+    ],
+    "health": [
+      "insurance",
+      "medical expenses",
+      "prescriptions",
+      "doctor",
+      "dentist",
+      "medicine",
+      "healthcare"
+    ],
+    "financial": [
+      "debt payments",
+      "emergency fund",
+      "college fund",
+      "retirement",
+      "savings",
+      "investment",
+      "loan"
+    ]
   },
   "retiree": {
-    "housing": ["mortgage", "rent", "property tax", "maintenance", "retirement community", "assisted living", "home"],
-    "healthcare": ["medicare", "prescriptions", "doctor visits", "specialists", "hospital", "medicine", "insurance"],
-    "daily living": ["groceries", "household supplies", "personal care", "home help", "cleaning", "maintenance"],
-    "leisure": ["travel", "hobbies", "dining out", "entertainment", "recreation", "clubs", "activities"],
-    "transport": ["car expenses", "insurance", "senior transport", "fuel", "maintenance", "taxi", "transit"],
-    "income": ["social security", "pension", "retirement accounts", "investments", "dividends", "interest"],
-    "financial": ["estate planning", "insurance", "tax planning", "gifts", "donations", "legacy", "wealth management"]
+    "housing": [
+      "mortgage",
+      "rent",
+      "property tax",
+      "maintenance",
+      "retirement community",
+      "assisted living",
+      "home"
+    ],
+    "healthcare": [
+      "medicare",
+      "prescriptions",
+      "doctor visits",
+      "specialists",
+      "hospital",
+      "medicine",
+      "insurance"
+    ],
+    "daily living": [
+      "groceries",
+      "household supplies",
+      "personal care",
+      "home help",
+      "cleaning",
+      "maintenance"
+    ],
+    "leisure": [
+      "travel",
+      "hobbies",
+      "dining out",
+      "entertainment",
+      "recreation",
+      "clubs",
+      "activities"
+    ],
+    "transport": [
+      "car expenses",
+      "insurance",
+      "senior transport",
+      "fuel",
+      "maintenance",
+      "taxi",
+      "transit"
+    ],
+    "income": [
+      "social security",
+      "pension",
+      "retirement accounts",
+      "investments",
+      "dividends",
+      "interest"
+    ],
+    "financial": [
+      "estate planning",
+      "insurance",
+      "tax planning",
+      "gifts",
+      "donations",
+      "legacy",
+      "wealth management"
+    ]
   },
   "freelancer": {
-    "business": ["software", "equipment", "workspace", "subscriptions", "tools", "office supplies", "coworking"],
-    "professional": ["development", "marketing", "networking", "certifications", "courses", "webinars", "conference"],
-    "income": ["project payments", "contracts", "retainers", "royalties", "client payments", "invoices"],
-    "taxes": ["estimated taxes", "self-employment tax", "deductions", "accounting", "tax preparation"],
-    "insurance": ["health insurance", "business insurance", "liability", "disability", "equipment insurance"],
-    "personal": ["salary draw", "living expenses", "personal transfers", "withdrawal", "owner pay"],
-    "savings": ["retirement", "emergency fund", "business expansion", "investments", "savings", "ira", "sep"]
+    "business": [
+      "software",
+      "equipment",
+      "workspace",
+      "subscriptions",
+      "tools",
+      "office supplies",
+      "coworking"
+    ],
+    "professional": [
+      "development",
+      "marketing",
+      "networking",
+      "certifications",
+      "courses",
+      "webinars",
+      "conference"
+    ],
+    "income": [
+      "project payments",
+      "contracts",
+      "retainers",
+      "royalties",
+      "client payments",
+      "invoices"
+    ],
+    "taxes": [
+      "estimated taxes",
+      "self-employment tax",
+      "deductions",
+      "accounting",
+      "tax preparation"
+    ],
+    "insurance": [
+      "health insurance",
+      "business insurance",
+      "liability",
+      "disability",
+      "equipment insurance"
+    ],
+    "personal": [
+      "salary draw",
+      "living expenses",
+      "personal transfers",
+      "withdrawal",
+      "owner pay"
+    ],
+    "savings": [
+      "retirement",
+      "emergency fund",
+      "business expansion",
+      "investments",
+      "savings",
+      "ira",
+      "sep"
+    ]
   },
   "small business": {
-    "operations": ["rent", "utilities", "equipment", "software", "supplies", "office", "workspace", "inventory"],
-    "staff": ["salaries", "benefits", "training", "recruitment", "payroll", "compensation", "bonuses", "hr"],
-    "marketing": ["advertising", "website", "events", "branding", "social media", "promotions", "seo"],
-    "inventory": ["product purchases", "materials", "shipping", "manufacturing", "stock", "supplies", "wholesale"],
-    "professional": ["accounting", "legal", "banking fees", "consulting", "advisor", "bookkeeping", "licenses"],
-    "taxes": ["income tax", "payroll tax", "liability", "property insurance", "business tax", "vat", "gst"],
-    "revenue": ["sales", "service income", "contracts", "subscriptions", "client payments", "revenue"]
+    "operations": [
+      "rent",
+      "utilities",
+      "equipment",
+      "software",
+      "supplies",
+      "office",
+      "workspace",
+      "inventory"
+    ],
+    "staff": [
+      "salaries",
+      "benefits",
+      "training",
+      "recruitment",
+      "payroll",
+      "compensation",
+      "bonuses",
+      "hr"
+    ],
+    "marketing": [
+      "advertising",
+      "website",
+      "events",
+      "branding",
+      "social media",
+      "promotions",
+      "seo"
+    ],
+    "inventory": [
+      "product purchases",
+      "materials",
+      "shipping",
+      "manufacturing",
+      "stock",
+      "supplies",
+      "wholesale"
+    ],
+    "professional": [
+      "accounting",
+      "legal",
+      "banking fees",
+      "consulting",
+      "advisor",
+      "bookkeeping",
+      "licenses"
+    ],
+    "taxes": [
+      "income tax",
+      "payroll tax",
+      "liability",
+      "property insurance",
+      "business tax",
+      "vat",
+      "gst"
+    ],
+    "revenue": [
+      "sales",
+      "service income",
+      "contracts",
+      "subscriptions",
+      "client payments",
+      "revenue"
+    ]
   }
 }

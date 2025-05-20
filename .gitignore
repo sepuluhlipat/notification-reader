@@ -1,9 +1,11 @@
 test-*.ipynb
 test-*.py
+*_marimo.py
 
 *.csv
 *.txt
 *.xlsx
 
 __pycache__/
+__marimo__/
 *.pyc
