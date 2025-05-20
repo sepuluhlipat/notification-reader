@@ -305,15 +305,15 @@ budget_categories = {
 
 ```mermaid
 mindmap
-    id1((Student))
-        id2[🎓 Education]
-            id2-1[Tuition]
-            id2-2[Textbooks]
-            id2-3[Supplies]
-        id3[🍽️ Food]
-            id3-1[Meal plan]
-            id3-2[Groceries]
-            id3-3[Dining out]
+    id1((Student))        
+        id2[🍽️ Food]
+            id2-1[Meal plan]
+            id2-2[Groceries]
+            id2-3[Dining out]
+        id3[🎓 Education]
+            id3-1[Tuition]
+            id3-2[Textbooks]
+            id3-3[Supplies]
         id4[🏠 Housing]
             id4-1[Rent]
             id4-2[Utilities]
