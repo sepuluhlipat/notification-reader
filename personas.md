@@ -301,8 +301,6 @@ budget_categories = {
 
 ## Appendix: Detailed Mind Maps
 
-<details> <summary>Click to expand detailed mind maps</summary>
-
 ### Student (Detailed)
 
 ```mermaid
@@ -540,5 +538,3 @@ mindmap
             id8-3[Events]
             id8-4[Branding]
 ```
-
-</details>
