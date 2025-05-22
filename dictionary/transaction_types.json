@@ -4,12 +4,12 @@
     "refund",
     "payment from",
     "transfer from",
-    "credit",
     "deposit",
     "bonus",
     "salary",
     "reimbursement",
-    "cashback"
+    "cashback",
+    "credit"
   ],
   "expense": [
     "paid",

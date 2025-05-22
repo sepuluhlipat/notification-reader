@@ -510,5 +510,23 @@
       "client payments",
       "revenue"
     ]
+  },
+  "trial": {
+    "huhu": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "f",
+      "e",
+      "z"
+    ],
+    "hoho": [
+      "z",
+      "y",
+      "x",
+      "a",
+      "b"
+    ]
   }
 }

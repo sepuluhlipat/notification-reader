@@ -4,15 +4,15 @@ This repository contains budget categories and financial planning resources tail
 
 ## Table of Contents
 
-- [Personas Overview](#personas-overview)
-- [Budget Categories by Persona](#budget-categories-by-persona)
-    - [Student](#-student)
-    - [Young Professional](#-young-professional)
-    - [Household](#-household)
-    - [Retiree](#-retiree)
-    - [Freelancer](#-freelancer)
-    - [Small Business](#-small-business)
-- [Detailed Budget Category Dictionary](#detailed-budget-category-dictionary)
+- [Personas Overview](#personas-overview) 
+- [Budget Categories by Persona](#budget-categories-by-persona) 
+    - [Student](#-student) 
+    - [Young Professional](#-young-professional) 
+    - [Household](#-household) 
+    - [Retiree](#-retiree) 
+    - [Freelancer](#-freelancer) 
+    - [Small Business](#-small-business) 
+- [Detailed Budget Category Dictionary](#detailed-budget-category-dictionary) 
 
 ## Personas Overview
 
