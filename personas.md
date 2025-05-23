@@ -9,8 +9,7 @@ This repository contains budget categories and financial planning resources tail
     - [Student](#-student) 
     - [Young Professional](#-young-professional) 
     - [Household](#-household) 
-    - [Retiree](#-retiree) 
-    - [Freelancer](#-freelancer) 
+    - [Retiree](#-retiree)  
     - [Small Business](#-small-business) 
 - [Detailed Budget Category Dictionary](#detailed-budget-category-dictionary) 
 
@@ -20,7 +19,6 @@ This repository contains budget categories and financial planning resources tail
 - 💼 **Young Professionals**: Early-career individuals establishing financial independence
 - 🏠 **Household Budgeters**: Families managing shared resources and responsibilities
 - 👵 **Retirees**: Individuals managing fixed incomes and healthcare costs
-- 🖥️ **Freelancers**: Self-employed individuals with variable income streams
 - 🏪 **Small Business Owners**: Managing business and personal finances
 
 ## Budget Categories by Persona
@@ -167,41 +165,6 @@ mindmap
 - **Income**: Social Security, Pension, Retirement accounts, Investments
 - **Financial**: Estate planning, Insurance, Tax planning, Gifts
 
-### 🖥️ Freelancer
-
-```mermaid
-mindmap
-  root((Freelancer))
-    Business
-      Software/Tools
-      Office supplies
-    Workspace
-      Home office
-      Coworking
-    Professional
-      Courses
-      Certifications
-    Income
-      Client payments
-      Contracts
-    Taxes
-      Quarterly estimates
-      Deductions
-    Insurance
-      Health
-      Business liability
-```
-
-**Freelancer Categories in Detail:**
-
-- **Business**: Software, Equipment, Workspace, Subscriptions
-- **Professional**: Development, Marketing, Networking, Certifications
-- **Income**: Project payments, Contracts, Retainers, Royalties
-- **Taxes**: Estimated taxes, Self-employment tax, Deductions
-- **Insurance**: Health insurance, Business insurance, Liability
-- **Personal**: Salary draw, Living expenses, Personal transfers
-- **Savings**: Retirement, Emergency fund, Business expansion
-
 ### 🏪 Small Business
 
 ```mermaid
@@ -277,15 +240,6 @@ budget_categories = {
         "Transport": ["Car expenses", "Insurance", "Senior transport"],
         "Income": ["Social Security", "Pension", "Retirement accounts", "Investments"],
         "Financial": ["Estate planning", "Insurance", "Tax planning", "Gifts"]
-    },
-    "Freelancer": {
-        "Business": ["Software", "Equipment", "Workspace", "Subscriptions"],
-        "Professional": ["Development", "Marketing", "Networking", "Certifications"],
-        "Income": ["Project payments", "Contracts", "Retainers", "Royalties"],
-        "Taxes": ["Estimated taxes", "Self-employment tax", "Deductions"],
-        "Insurance": ["Health insurance", "Business insurance", "Liability"],
-        "Personal": ["Salary draw", "Living expenses", "Personal transfers"],
-        "Savings": ["Retirement", "Emergency fund", "Business expansion"]
     },
     "Small Business": {
         "Operations": ["Rent", "Utilities", "Equipment", "Software", "Supplies"],
@@ -456,44 +410,6 @@ mindmap
             id8-2[Insurance]
             id8-3[Tax planning]
             id8-4[Gifts]
-```
-
-### Freelancer (Detailed)
-
-```mermaid
-mindmap
-    id1((Freelancer))
-        id2[💻 Business]
-            id2-1[Software]
-            id2-2[Equipment]
-            id2-3[Workspace]
-            id2-4[Subscriptions]
-        id3[🚀 Professional]
-            id3-1[Development]
-            id3-2[Marketing]
-            id3-3[Networking]
-            id3-4[Certifications]
-        id4[💰 Income]
-            id4-1[Project payments]
-            id4-2[Contracts]
-            id4-3[Retainers]
-            id4-4[Royalties]
-        id5[📊 Taxes]
-            id5-1[Estimated taxes]
-            id5-2[Self-employment tax]
-            id5-3[Deductions]
-        id6[👤 Personal]
-            id6-1[Salary draw]
-            id6-2[Living expenses]
-            id6-3[Personal transfers]
-        id7[🔐 Insurance]
-            id7-1[Health insurance]
-            id7-2[Business insurance]
-            id7-3[Liability]
-        id8[🏦 Savings]
-            id8-1[Retirement]
-            id8-2[Emergency fund]
-            id8-3[Business expansion]
 ```
 
 ### Small Business (Detailed)

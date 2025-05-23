@@ -387,64 +387,6 @@
       "wealth management"
     ]
   },
-  "freelancer": {
-    "business": [
-      "software",
-      "equipment",
-      "workspace",
-      "subscriptions",
-      "tools",
-      "office supplies",
-      "coworking"
-    ],
-    "professional": [
-      "development",
-      "marketing",
-      "networking",
-      "certifications",
-      "courses",
-      "webinars",
-      "conference"
-    ],
-    "income": [
-      "project payments",
-      "contracts",
-      "retainers",
-      "royalties",
-      "client payments",
-      "invoices"
-    ],
-    "taxes": [
-      "estimated taxes",
-      "self-employment tax",
-      "deductions",
-      "accounting",
-      "tax preparation"
-    ],
-    "insurance": [
-      "health insurance",
-      "business insurance",
-      "liability",
-      "disability",
-      "equipment insurance"
-    ],
-    "personal": [
-      "salary draw",
-      "living expenses",
-      "personal transfers",
-      "withdrawal",
-      "owner pay"
-    ],
-    "savings": [
-      "retirement",
-      "emergency fund",
-      "business expansion",
-      "investments",
-      "savings",
-      "ira",
-      "sep"
-    ]
-  },
   "small business": {
     "operations": [
       "rent",
@@ -509,24 +451,6 @@
       "subscriptions",
       "client payments",
       "revenue"
-    ]
-  },
-  "trial": {
-    "huhu": [
-      "a",
-      "b",
-      "c",
-      "d",
-      "f",
-      "e",
-      "z"
-    ],
-    "hoho": [
-      "z",
-      "y",
-      "x",
-      "a",
-      "b"
     ]
   }
 }
