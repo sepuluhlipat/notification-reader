@@ -19,7 +19,8 @@ class DictionaryUpdater:
         self._file_paths = {
             'categories': os.path.join(current_dir, 'categories.json'),
             'merchants': os.path.join(current_dir, 'merchants.json'),
-            'transaction_types': os.path.join(current_dir, 'transaction_types.json')
+            'transaction_types': os.path.join(current_dir, 'transaction_types.json'),
+            'blacklist': os.path.join(current_dir, 'blacklist.json')
         }
         
         self._load_dictionaries()
@@ -30,10 +31,12 @@ class DictionaryUpdater:
             self.categories = self.dictionary_module.get_all_categories()
             self.merchants = self.dictionary_module.get_merchants()
             self.transaction_types = self.dictionary_module.get_transaction_types()
+            self.blacklist = self.dictionary_module.get_blacklist()
         else:
             self.categories = self._load_json_file(self._file_paths['categories'])
             self.merchants = self._load_json_file(self._file_paths['merchants'])
             self.transaction_types = self._load_json_file(self._file_paths['transaction_types'])
+            self.blacklist = self._load_json_file(self._file_paths['blacklist'])
     
     def _load_json_file(self, file_path: str) -> Dict:
         """Load data from a JSON file."""
@@ -350,11 +353,18 @@ class DictionaryUpdater:
     def save_changes(self) -> Dict[str, bool]:
         """Save all dictionaries to their respective JSON files."""
         results = {}
-        for dict_name, file_path in self._file_paths.items():
-            dictionary, _ = self.get_dictionary_info(dict_name)
+    
+        for dict_name in ['categories', 'merchants', 'transaction_types']:
+            dictionary, file_path = self.get_dictionary_info(dict_name)
             results[dict_name] = self._save_json_file(file_path, dictionary)
         
-        # If dictionary module is provided, reload dictionaries
+        blacklist_path = self._file_paths['blacklist']
+        
+        if not hasattr(self, 'blacklist') or not isinstance(self.blacklist, list):
+            self.blacklist = []
+        
+        results['blacklist'] = self._save_json_file(blacklist_path, self.blacklist)
+        
         if self.dictionary_module:
             self.dictionary_module.reload_dictionaries()
             
@@ -590,3 +600,42 @@ class DictionaryUpdater:
         except Exception as e:
             print(f"Error removing persona: {e}")
             return False
+
+    def get_blacklisted_apps(self) -> List[str]:
+        """Get the list of blacklisted apps."""
+        if not hasattr(self, 'blacklist'):
+            self.blacklist = []
+        
+        if not isinstance(self.blacklist, list):
+            self.blacklist = []
+        
+        return self.blacklist
+
+    def add_blacklisted_app(self, app_identifier: str) -> bool:
+        """Add an app to the blacklist."""
+        app_identifier = app_identifier.strip()
+        if not app_identifier:
+            return False
+        
+        if not hasattr(self, 'blacklist') or not isinstance(self.blacklist, list):
+            self.blacklist = []
+        
+        if any(app.lower() == app_identifier.lower() for app in self.blacklist):
+            print(f"App '{app_identifier}' is already blacklisted.")
+            return False
+        
+        self.blacklist.append(app_identifier)
+        return True
+
+    def remove_blacklisted_app(self, app_identifier: str) -> bool:
+        """Remove an app from the blacklist."""
+        if not hasattr(self, 'blacklist') or not isinstance(self.blacklist, list):
+            return False
+        
+        # Find and remove the app (case-insensitive)
+        for i, app in enumerate(self.blacklist):
+            if app.lower() == app_identifier.lower():
+                self.blacklist.pop(i)
+                return True
+        
+        return False
