@@ -65,17 +65,18 @@ class Transaction:
 
 
 class NotificationParser:
-    def __init__(self, persona="general"):
-        """Initialize parser with persona-specific categories."""
-        self.persona = persona.strip().lower()
+    def __init__(self):
+        """Initialize parser with unified dictionaries."""
         self._load_dictionaries()
         self._compile_patterns()
     
     def _load_dictionaries(self):
         """Load all required dictionaries."""
-        self.categories = dictionary.get_categories_for_persona(self.persona)
+        # Load from unified dictionary structure
+        self.categories = dictionary.get_categories()
         self.merchants = dictionary.get_merchants()
         self.transaction_types = dictionary.get_transaction_types()
+        self.blacklisted_apps = dictionary.get_blacklist()
     
     def _compile_patterns(self):
         """Compile regex patterns for transaction extraction."""
@@ -113,10 +114,9 @@ class NotificationParser:
             r'payment\s+(?:successfully\s+)?made\s+to\s+([\w\s\-&\']+?)(?:\.|\s*$|\s+for|\s+on|\s+at|\s+with)'
         ]
     
-    def set_persona_categories(self, persona):
-        """Update persona and reload categories."""
-        self.persona = persona.strip().lower()
-        self.categories = dictionary.get_categories_for_persona(self.persona)
+    def reload_dictionaries(self):
+        """Reload dictionaries (useful after updates)."""
+        self._load_dictionaries()
     
     def _extract_with_patterns(self, text, patterns):
         """Generic pattern extraction helper."""
@@ -187,16 +187,18 @@ class NotificationParser:
         return TransactionType.UNKNOWN
     
     def extract_category(self, text):
-        """Categorize transactions based on content and persona."""
+        """Categorize transactions based on content."""
         if not isinstance(text, str):
             return "other"
             
         text_lower = text.lower()
         
+        # First check merchants for more specific categorization
         for category, merchants in self.merchants.items():
             if any(merchant in text_lower for merchant in merchants):
                 return category
         
+        # Then check general categories
         for category, keywords in self.categories.items():
             if any(keyword in text_lower for keyword in keywords):
                 return category
@@ -249,18 +251,17 @@ class NotificationParser:
     
     def _is_app_blacklisted(self, app_identifier):
         """Check if an app is blacklisted."""
-        blacklisted_apps = dictionary.get_blacklist()
         app_lower = app_identifier.lower().strip()
 
-        for blacklisted_app in blacklisted_apps:
+        for blacklisted_app in self.blacklisted_apps:
             if blacklisted_app.lower() in app_lower or app_lower in blacklisted_app.lower():
                 return True
         return False
 
 
-def process_notification_data(df, persona="general"):
+def process_notification_data(df):
     """Process notifications dataframe to extract structured transaction data."""
-    parser = NotificationParser(persona)
+    parser = NotificationParser()
     results = []
     blacklisted_count = 0
     
@@ -286,7 +287,7 @@ def process_notification_data(df, persona="general"):
     return pd.DataFrame(results)
 
 
-def test_raw_csv_input(raw_input, persona="general"):
+def test_raw_csv_input(raw_input):
     """Test notifications using raw CSV input without headers."""
     try:
         column_names = ['ID', 'PACKAGE NAME', 'APP LABEL', 'MESSAGE', 'DATE', 'CONTENTS', 'TIMESTAMP']
@@ -295,7 +296,7 @@ def test_raw_csv_input(raw_input, persona="general"):
             raw_input += '\n'
             
         df = pd.read_csv(io.StringIO(raw_input), names=column_names, header=None)
-        result_df = process_notification_data(df, persona)
+        result_df = process_notification_data(df)
         
         return [row.to_dict() for _, row in result_df.iterrows()]
         
@@ -314,12 +315,22 @@ class DictionaryManager:
         print("\n" + "=" * 50)
         print("DICTIONARY UPDATER")
         print("Update transaction categorization dictionaries")
+        print(f"Current dictionaries: {', '.join(self.updater.get_available_dictionaries())}")
+        
+        # Show current statistics
+        stats = self.updater.get_dictionary_stats()
+        print(f"\nCurrent Statistics:")
+        for dict_name, stat in stats.items():
+            if dict_name == 'blacklist':
+                print(f"  {dict_name}: {stat['total_apps']} apps")
+            else:
+                print(f"  {dict_name}: {stat['subcategories']} subcategories, {stat['total_keywords']} keywords")
         
         while True:
             choice = self._get_main_menu_choice()
             
             if choice == "1":
-                if not self._update_categories():
+                if not self._update_dictionary("categories"):
                     break
             elif choice == "2":
                 if not self._update_dictionary("merchants"):
@@ -331,6 +342,8 @@ class DictionaryManager:
                 if not self._update_blacklist():
                     break
             elif choice == "5":
+                self._show_dictionary_stats()
+            elif choice == "6":
                 print("\nExiting dictionary updater.")
                 break
             else:
@@ -344,108 +357,47 @@ class DictionaryManager:
         print("2. Merchants") 
         print("3. Transaction Types")
         print("4. Blacklisted Apps")
-        print("5. Exit")
-        return input("\nEnter your choice [1-5]: ").strip()
+        print("5. Show Statistics")
+        print("6. Exit")
+        return input("\nEnter your choice [1-6]: ").strip()
     
-    def _update_categories(self):
-        """Handle category updates."""
-        while True:
-            personas = self.updater.get_subcategories("categories")
-            choice = self._get_categories_menu_choice(personas)
-            
-            if choice == "1":
-                self._add_persona()
-            elif choice == "2":
-                if personas and not self._update_persona(personas):
-                    return False
-            elif choice == "3":
-                if personas:
-                    self._remove_persona(personas)
-            elif choice == "4":
-                return True
-            elif choice == "5":
-                return False
+    def _show_dictionary_stats(self):
+        """Display detailed dictionary statistics."""
+        stats = self.updater.get_dictionary_stats()
+        print(f"\n{'=' * 50}")
+        print("DICTIONARY STATISTICS")
+        print(f"{'=' * 50}")
+        
+        for dict_name, stat in stats.items():
+            print(f"\n{dict_name.upper()}:")
+            if dict_name == 'blacklist':
+                print(f"  Total blacklisted apps: {stat['total_apps']}")
+                if stat['total_apps'] > 0:
+                    apps = self.updater.get_blacklisted_apps()
+                    print(f"  Apps: {', '.join(apps[:5])}")
+                    if len(apps) > 5:
+                        print(f"        ... and {len(apps) - 5} more")
             else:
-                print("\nInvalid choice. Please try again.")
-    
-    def _get_categories_menu_choice(self, personas):
-        """Display categories menu."""
-        print("\n" + "=" * 50)
-        print("UPDATE CATEGORIES")
+                print(f"  Subcategories: {stat['subcategories']}")
+                print(f"  Total keywords: {stat['total_keywords']}")
+                
+                # Show subcategories with keyword counts
+                subcategories = self.updater.get_subcategories(dict_name)
+                if subcategories:
+                    print("  Breakdown:")
+                    for subcat in subcategories[:5]:  # Show first 5
+                        try:
+                            keywords = self.updater.get_keywords(dict_name, subcat)
+                            print(f"    {subcat}: {len(keywords)} keywords")
+                        except:
+                            print(f"    {subcat}: 0 keywords")
+                    if len(subcategories) > 5:
+                        print(f"    ... and {len(subcategories) - 5} more subcategories")
         
-        if personas:
-            print("\nAvailable personas:")
-            for i, persona in enumerate(personas, 1):
-                print(f"{i}. {persona}")
-        
-        print("\nOPTIONS:")
-        print("1. Add new persona")
-        print("2. Update existing persona")
-        print("3. Remove a persona")
-        print("4. Back to main menu")
-        print("5. Exit")
-        
-        return input("\nEnter your choice [1-5]: ").strip()
-    
-    def _add_persona(self):
-        """Add a new persona."""
-        persona_name = input("\nEnter new persona name (or 'exit' to quit): ").strip().lower()
-        
-        if persona_name == 'exit':
-            return False
-        
-        if not persona_name:
-            print("\nPersona name cannot be empty.")
-            return True
-        
-        if self.updater.add_persona(persona_name):
-            print(f"\nPersona '{persona_name}' added successfully.")
-            
-            if self._confirm_action(f"add categories for '{persona_name}'"):
-                return self._update_subcategories("categories", persona_name)
-        else:
-            print(f"\nFailed to add persona '{persona_name}'.")
-        
-        return True
-    
-    def _update_persona(self, personas):
-        """Update an existing persona."""
-        persona_choice = input("\nEnter persona number to update (or 'exit' to quit): ").strip()
-        
-        if persona_choice.lower() == 'exit':
-            return False
-        
-        try:
-            persona_idx = int(persona_choice) - 1
-            if 0 <= persona_idx < len(personas):
-                persona = personas[persona_idx]
-                return self._update_subcategories("categories", persona)
-            else:
-                print("\nInvalid persona number.")
-        except ValueError:
-            print("\nPlease enter a valid persona number.")
-        
-        return True
-    
-    def _remove_persona(self, personas):
-        """Remove a persona."""
-        try:
-            persona_choice = input("\nSelect persona to remove (number) or Enter to cancel: ").strip()
-            if not persona_choice:
-                return
-            
-            persona_idx = int(persona_choice) - 1
-            if 0 <= persona_idx < len(personas):
-                persona = personas[persona_idx]
-                if self._confirm_action(f"remove persona '{persona}'"):
-                    if self.updater.remove_persona(persona):
-                        print(f"\nPersona '{persona}' removed successfully.")
-                        self._save_changes()
-        except ValueError:
-            print("\nPlease enter a valid persona number.")
+        input("\nPress Enter to continue...")
     
     def _update_dictionary(self, dict_name):
-        """Update merchants or transaction_types dictionary."""
+        """Update categories, merchants, or transaction_types dictionary."""
         while True:
             subcategories = self.updater.get_subcategories(dict_name)
             choice = self._get_dictionary_menu_choice(dict_name, subcategories)
@@ -459,8 +411,11 @@ class DictionaryManager:
                 if subcategories:
                     self._remove_subcategory(dict_name, subcategories)
             elif choice == "4":
-                return True
+                if subcategories:
+                    self._view_subcategory_details(dict_name, subcategories)
             elif choice == "5":
+                return True
+            elif choice == "6":
                 return False
             else:
                 print("\nInvalid choice. Please try again.")
@@ -471,26 +426,58 @@ class DictionaryManager:
         print(f"UPDATE {dict_name.upper()}")
         
         if subcategories:
-            print(f"\nAvailable {dict_name}:")
-            for i, subcat in enumerate(subcategories, 1):
-                print(f"{i}. {subcat}")
+            print(f"\nAvailable {dict_name} ({len(subcategories)} total):")
+            for i, subcat in enumerate(subcategories[:10], 1):  # Show first 10
+                try:
+                    keywords = self.updater.get_keywords(dict_name, subcat)
+                    print(f"{i}. {subcat} ({len(keywords)} keywords)")
+                except:
+                    print(f"{i}. {subcat} (0 keywords)")
+            if len(subcategories) > 10:
+                print(f"... and {len(subcategories) - 10} more")
+        else:
+            print(f"\nNo {dict_name} found.")
         
-        item_name = dict_name[:-1]  # Remove 's'
+        item_name = dict_name[:-1] if dict_name.endswith('s') else dict_name
         print(f"\nOPTIONS:")
         print(f"1. Add new {item_name}")
         print(f"2. Update existing {item_name}")
         print(f"3. Remove a {item_name}")
-        print("4. Back to main menu")
-        print("5. Exit")
+        print(f"4. View details")
+        print("5. Back to main menu")
+        print("6. Exit")
         
-        return input("\nEnter your choice [1-5]: ").strip()
+        return input("\nEnter your choice [1-6]: ").strip()
+    
+    def _view_subcategory_details(self, dict_name, subcategories):
+        """View detailed information about subcategories."""
+        print(f"\n{'=' * 50}")
+        print(f"{dict_name.upper()} DETAILS")
+        print(f"{'=' * 50}")
+        
+        for i, subcat in enumerate(subcategories, 1):
+            try:
+                keywords = self.updater.get_keywords(dict_name, subcat)
+                print(f"\n{i}. {subcat} ({len(keywords)} keywords):")
+                if keywords:
+                    # Show first 10 keywords
+                    for j, keyword in enumerate(keywords[:10]):
+                        print(f"    - {keyword}")
+                    if len(keywords) > 10:
+                        print(f"    ... and {len(keywords) - 10} more keywords")
+                else:
+                    print("    (no keywords)")
+            except Exception as e:
+                print(f"\n{i}. {subcat}: Error loading keywords - {e}")
+        
+        input("\nPress Enter to continue...")
     
     def _add_subcategory(self, dict_name):
         """Add a subcategory to dictionary."""
-        item_name = dict_name[:-1]
-        subcat_name = input(f"\nEnter new {item_name} name (or 'exit' to quit): ").strip().lower()
+        item_name = dict_name[:-1] if dict_name.endswith('s') else dict_name
+        subcat_name = input(f"\nEnter new {item_name} name (or 'exit' to quit): ").strip()
         
-        if subcat_name == 'exit':
+        if subcat_name.lower() == 'exit':
             return False
         
         if not subcat_name:
@@ -510,14 +497,26 @@ class DictionaryManager:
         """Add initial keywords to a subcategory."""
         keywords = input("\nEnter initial keywords (comma-separated) or press Enter to skip: ").strip()
         if keywords:
+            added_count = 0
             for keyword in keywords.split(','):
-                keyword = keyword.strip().lower()
+                keyword = keyword.strip()
                 if keyword:
-                    self.updater.add_keyword(dict_name, subcat_name, keyword)
+                    if self.updater.add_keyword(dict_name, subcat_name, keyword, check_conflicts=False):
+                        added_count += 1
+            print(f"Added {added_count} keywords to '{subcat_name}'.")
     
     def _update_subcategory(self, dict_name, subcategories):
         """Update a subcategory."""
-        item_name = dict_name[:-1]
+        item_name = dict_name[:-1] if dict_name.endswith('s') else dict_name
+        
+        print(f"\nAvailable {item_name}s:")
+        for i, subcat in enumerate(subcategories, 1):
+            try:
+                keywords = self.updater.get_keywords(dict_name, subcat)
+                print(f"{i}. {subcat} ({len(keywords)} keywords)")
+            except:
+                print(f"{i}. {subcat} (0 keywords)")
+        
         subcat_choice = input(f"\nEnter {item_name} number to update (or 'exit' to quit): ").strip()
         
         if subcat_choice.lower() == 'exit':
@@ -537,7 +536,16 @@ class DictionaryManager:
     
     def _remove_subcategory(self, dict_name, subcategories):
         """Remove a subcategory."""
-        item_name = dict_name[:-1]
+        item_name = dict_name[:-1] if dict_name.endswith('s') else dict_name
+        
+        print(f"\nAvailable {item_name}s:")
+        for i, subcat in enumerate(subcategories, 1):
+            try:
+                keywords = self.updater.get_keywords(dict_name, subcat)
+                print(f"{i}. {subcat} ({len(keywords)} keywords)")
+            except:
+                print(f"{i}. {subcat} (0 keywords)")
+        
         try:
             subcat_choice = input(f"\nSelect {item_name} to remove (number) or Enter to cancel: ").strip()
             if not subcat_choice:
@@ -550,132 +558,31 @@ class DictionaryManager:
                     if self.updater.remove_subcategory(dict_name, subcategory):
                         print(f"\n{item_name.capitalize()} '{subcategory}' removed successfully.")
                         self._save_changes()
+                    else:
+                        print(f"\nFailed to remove {item_name} '{subcategory}'.")
+            else:
+                print(f"\nInvalid {item_name} number.")
         except ValueError:
             print(f"\nPlease enter a valid {item_name} number.")
     
-    def _update_subcategories(self, dict_name, persona=None):
-        """Update subcategories for a dictionary."""
-        while True:
-            subcategories = self.updater.get_subcategories(dict_name, persona)
-            choice = self._get_subcategories_menu_choice(dict_name, persona, subcategories)
-            
-            if choice == "1":
-                self._add_subcategory_with_persona(dict_name, persona)
-            elif choice == "2":
-                if subcategories and not self._update_subcategory_with_persona(dict_name, subcategories, persona):
-                    return False
-            elif choice == "3":
-                if subcategories:
-                    self._remove_subcategory_with_persona(dict_name, subcategories, persona)
-            elif choice == "4":
-                return True
-            elif choice == "5":
-                return False
-            else:
-                print("\nInvalid choice. Please try again.")
-    
-    def _get_subcategories_menu_choice(self, dict_name, persona, subcategories):
-        """Display subcategories menu."""
-        print(f"\n{'=' * 50}")
-        if persona:
-            print(f"UPDATE {dict_name.upper()} FOR PERSONA '{persona.upper()}'")
-        else:
-            print(f"UPDATE {dict_name.upper()}")
-        
-        if subcategories:
-            print("\nAvailable subcategories:")
-            for i, subcat in enumerate(subcategories, 1):
-                print(f"{i}. {subcat}")
-        
-        print("\nOPTIONS:")
-        print("1. Add new subcategory")
-        print("2. Update existing subcategory")
-        print("3. Remove a subcategory")
-        print("4. Back to previous menu")
-        print("5. Exit")
-        
-        return input("\nEnter your choice [1-5]: ").strip()
-    
-    def _add_subcategory_with_persona(self, dict_name, persona):
-        """Add subcategory with persona support."""
-        subcategory = input("\nEnter new subcategory name (or 'exit' to quit): ").strip().lower()
-        
-        if subcategory == 'exit':
-            return False
-        
-        if not subcategory:
-            print("\nSubcategory name cannot be empty.")
-            return True
-        
-        if self.updater.add_subcategory(dict_name, subcategory, persona):
-            print(f"\nSubcategory '{subcategory}' added successfully.")
-            self._add_initial_keywords_with_persona(dict_name, subcategory, persona)
-            self._save_changes()
-        else:
-            print(f"\nFailed to add subcategory '{subcategory}'.")
-        
-        return True
-    
-    def _add_initial_keywords_with_persona(self, dict_name, subcategory, persona):
-        """Add initial keywords with persona support."""
-        keywords = input("\nEnter initial keywords (comma-separated) or press Enter to skip: ").strip()
-        if keywords:
-            for keyword in keywords.split(','):
-                keyword = keyword.strip().lower()
-                if keyword:
-                    self.updater.add_keyword(dict_name, subcategory, keyword, persona)
-    
-    def _update_subcategory_with_persona(self, dict_name, subcategories, persona):
-        """Update subcategory with persona support."""
-        subcat_choice = input("\nEnter subcategory number to update (or 'exit' to quit): ").strip()
-        
-        if subcat_choice.lower() == 'exit':
-            return False
-        
-        try:
-            subcat_idx = int(subcat_choice) - 1
-            if 0 <= subcat_idx < len(subcategories):
-                subcategory = subcategories[subcat_idx]
-                return self._update_keywords(dict_name, subcategory, persona)
-            else:
-                print("\nInvalid subcategory number.")
-        except ValueError:
-            print("\nPlease enter a valid subcategory number.")
-        
-        return True
-    
-    def _remove_subcategory_with_persona(self, dict_name, subcategories, persona):
-        """Remove subcategory with persona support."""
-        try:
-            subcat_choice = input("\nSelect subcategory to remove (number) or Enter to cancel: ").strip()
-            if not subcat_choice:
-                return
-            
-            subcat_idx = int(subcat_choice) - 1
-            if 0 <= subcat_idx < len(subcategories):
-                subcategory = subcategories[subcat_idx]
-                if self._confirm_action(f"remove subcategory '{subcategory}'"):
-                    if self.updater.remove_subcategory(dict_name, subcategory, persona):
-                        print(f"\nSubcategory '{subcategory}' removed successfully.")
-                        self._save_changes()
-        except ValueError:
-            print("\nPlease enter a valid subcategory number.")
-    
-    def _update_keywords(self, dict_name, subcategory, persona=None):
+    def _update_keywords(self, dict_name, subcategory):
         """Update keywords for a subcategory."""
         while True:
             try:
-                keywords = self.updater.get_keywords(dict_name, subcategory, persona)
+                keywords = self.updater.get_keywords(dict_name, subcategory)
                 choice = self._get_keywords_menu_choice(subcategory, keywords)
                 
                 if choice == "1":
-                    self._add_keyword(dict_name, subcategory, keywords, persona)
+                    self._add_keyword(dict_name, subcategory, keywords)
                 elif choice == "2":
                     if keywords:
-                        self._remove_keyword(dict_name, subcategory, keywords, persona)
+                        self._remove_keyword(dict_name, subcategory, keywords)
                 elif choice == "3":
-                    return True
+                    if keywords:
+                        self._bulk_add_keywords(dict_name, subcategory)
                 elif choice == "4":
+                    return True
+                elif choice == "5":
                     return False
                 else:
                     print("\nInvalid choice. Please try again.")
@@ -690,35 +597,35 @@ class DictionaryManager:
         print(f"KEYWORDS FOR {subcategory.upper()}:")
         
         if keywords:
-            for i, keyword in enumerate(keywords, 1):
+            print(f"\nCurrent keywords ({len(keywords)} total):")
+            for i, keyword in enumerate(keywords[:15], 1):  # Show first 15
                 print(f"{i}. {keyword}")
+            if len(keywords) > 15:
+                print(f"... and {len(keywords) - 15} more keywords")
         else:
-            print("No keywords found.")
+            print("\nNo keywords found.")
         
         print("\nOPTIONS:")
         print("1. Add a keyword")
-        print("2. Remove a keyword") 
-        print("3. Back to previous menu")
-        print("4. Exit")
+        print("2. Remove a keyword")
+        print("3. Bulk add keywords")
+        print("4. Back to previous menu")
+        print("5. Exit")
         
-        return input("\nEnter your choice [1-4]: ").strip()
+        return input("\nEnter your choice [1-5]: ").strip()
     
-    def _add_keyword(self, dict_name, subcategory, existing_keywords, persona):
+    def _add_keyword(self, dict_name, subcategory, existing_keywords):
         """Add a keyword."""
-        keyword = input("\nEnter new keyword (or 'exit' to quit): ").strip().lower()
+        keyword = input("\nEnter new keyword (or 'exit' to quit): ").strip()
         
-        if keyword == 'exit':
+        if keyword.lower() == 'exit':
             return False
         
         if not keyword:
             print("\nKeyword cannot be empty.")
             return True
         
-        if keyword in existing_keywords:
-            print(f"\nKeyword '{keyword}' already exists.")
-            return True
-        
-        if self.updater.add_keyword(dict_name, subcategory, keyword, persona):
+        if self.updater.add_keyword(dict_name, subcategory, keyword):
             print(f"\nKeyword '{keyword}' added successfully.")
             self._save_changes()
         else:
@@ -726,8 +633,36 @@ class DictionaryManager:
         
         return True
     
-    def _remove_keyword(self, dict_name, subcategory, keywords, persona):
+    def _bulk_add_keywords(self, dict_name, subcategory):
+        """Add multiple keywords at once."""
+        print(f"\nBulk add keywords to '{subcategory}'")
+        keywords = input("Enter keywords separated by commas: ").strip()
+        
+        if not keywords:
+            print("No keywords entered.")
+            return
+        
+        added_count = 0
+        skipped_count = 0
+        
+        for keyword in keywords.split(','):
+            keyword = keyword.strip()
+            if keyword:
+                if self.updater.add_keyword(dict_name, subcategory, keyword, check_conflicts=False):
+                    added_count += 1
+                else:
+                    skipped_count += 1
+        
+        print(f"\nAdded {added_count} keywords, skipped {skipped_count} (duplicates or errors).")
+        if added_count > 0:
+            self._save_changes()
+    
+    def _remove_keyword(self, dict_name, subcategory, keywords):
         """Remove a keyword."""
+        print(f"\nKeywords in '{subcategory}':")
+        for i, keyword in enumerate(keywords, 1):
+            print(f"{i}. {keyword}")
+        
         try:
             keyword_choice = input("\nSelect keyword to remove (number) or Enter to cancel: ").strip()
             if not keyword_choice:
@@ -737,9 +672,13 @@ class DictionaryManager:
             if 0 <= keyword_idx < len(keywords):
                 keyword = keywords[keyword_idx]
                 if self._confirm_action(f"remove keyword '{keyword}'"):
-                    if self.updater.remove_keyword(dict_name, subcategory, keyword, persona):
+                    if self.updater.remove_keyword(dict_name, subcategory, keyword):
                         print(f"\nKeyword '{keyword}' removed successfully.")
                         self._save_changes()
+                    else:
+                        print(f"\nFailed to remove keyword '{keyword}'.")
+            else:
+                print("\nInvalid keyword number.")
         except ValueError:
             print("\nPlease enter a valid keyword number.")
     
@@ -749,8 +688,10 @@ class DictionaryManager:
     
     def _save_changes(self):
         """Save changes to dictionary."""
-        self.updater.save_changes()
-        print("Changes saved successfully.")
+        if self.updater.save_changes():
+            print("Changes saved successfully.")
+        else:
+            print("Failed to save changes.")
         
     def _update_blacklist(self):
         """Handle blacklist updates."""

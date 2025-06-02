@@ -1,0 +1,167 @@
+{
+  "categories": {
+    "food": [
+      "food",
+      "meal",
+      "restaurant",
+      "order",
+      "menu",
+      "eat",
+      "lunch",
+      "dinner",
+      "breakfast",
+      "gofood",
+      "groceries",
+      "dining"
+    ],
+    "transport": [
+      "ride",
+      "trip",
+      "gocar",
+      "grab",
+      "transport",
+      "travel",
+      "driver",
+      "gojek ride",
+      "blue bird",
+      "taxi",
+      "fuel",
+      "bus",
+      "transit"
+    ],
+    "shopping": [
+      "purchase",
+      "buy",
+      "shopping",
+      "shop",
+      "amazon",
+      "store",
+      "item",
+      "product",
+      "tokopedia",
+      "shopee",
+      "lazada"
+    ],
+    "entertainment": [
+      "movie",
+      "ticket",
+      "entertainment",
+      "game",
+      "music",
+      "streaming",
+      "netflix",
+      "spotify"
+    ],
+    "bills": [
+      "bill",
+      "utility",
+      "electricity",
+      "water",
+      "internet",
+      "phone",
+      "subscription"
+    ],
+    "transfer": [
+      "transfer",
+      "send money",
+      "receive money"
+    ],
+    "finance": [
+      "gopay",
+      "payment",
+      "wallet",
+      "jenius",
+      "bank",
+      "credit",
+      "debit",
+      "card",
+      "saving",
+      "investment",
+      "insurance"
+    ],
+    "education": [
+      "course",
+      "class",
+      "learning",
+      "tuition",
+      "school",
+      "university",
+      "books",
+      "textbooks",
+      "specialization"
+    ],
+    "health": [
+      "medicine",
+      "doctor",
+      "hospital",
+      "health",
+      "medical",
+      "pharmacy",
+      "prescription",
+      "gym"
+    ]
+  },
+  "merchants": {
+    "transport": [
+      "blue bird",
+      "gojek ride",
+      "grab",
+      "taxi",
+      "uber"
+    ],
+    "food": [
+      "gofood",
+      "grabfood"
+    ],
+    "shopping": [
+      "tokopedia",
+      "shopee",
+      "lazada",
+      "amazon"
+    ],
+    "finance": [
+      "gopay",
+      "jenius"
+    ]
+  },
+  "transaction_types": {
+    "income": [
+      "received",
+      "refund",
+      "payment from",
+      "transfer from",
+      "deposit",
+      "bonus",
+      "salary",
+      "reimbursement",
+      "cashback",
+      "credit"
+    ],
+    "expense": [
+      "paid",
+      "payment to",
+      "sent",
+      "pay",
+      "purchase",
+      "bought",
+      "deducted",
+      "bought",
+      "charged",
+      "payment for",
+      "subscription fee",
+      "transfer to"
+    ],
+    "transfer": [
+      "transfer",
+      "send to",
+      "sent to",
+      "moved",
+      "moving funds",
+      "fund transfer"
+    ]
+  },
+  "blacklist": [
+    "Grab",
+    "StayFree"
+  ]
+}

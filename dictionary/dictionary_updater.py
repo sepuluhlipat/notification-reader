@@ -1,8 +1,8 @@
 """
 Enhanced Dictionary updater module for the transaction categorization system.
-Allows users to view and edit dictionary entries and save changes to JSON files.
-Includes improved conflict checking with proper scoping for categories.
-Shows only the specific conflicting keyword when displaying conflicts.
+Allows users to view and edit dictionary entries and save changes to a single JSON file.
+Uses a unified dictionary structure with categories, merchants, transaction_types, and blacklist.
+Removes persona-based categorization - uses only general categories.
 """
 import json
 import os
@@ -11,44 +11,48 @@ from typing import Dict, List, Any, Tuple, Optional
 
 class DictionaryUpdater:
     def __init__(self, dictionary_module=None):
-        """Initialize the dictionary updater with paths to the JSON files."""
+        """Initialize the dictionary updater with path to the unified JSON file."""
         self.dictionary_module = dictionary_module
         
-        # Define paths to JSON files
+        # Define path to the unified JSON file
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self._file_paths = {
-            'categories': os.path.join(current_dir, 'categories.json'),
-            'merchants': os.path.join(current_dir, 'merchants.json'),
-            'transaction_types': os.path.join(current_dir, 'transaction_types.json'),
-            'blacklist': os.path.join(current_dir, 'blacklist.json')
-        }
+        self._file_path = os.path.join(current_dir, 'dictionary.json')
         
         self._load_dictionaries()
     
     def _load_dictionaries(self) -> None:
-        """Load all dictionaries from their respective JSON files."""
+        """Load all dictionaries from the unified JSON file or dictionary module."""
         if self.dictionary_module:
-            self.categories = self.dictionary_module.get_all_categories()
-            self.merchants = self.dictionary_module.get_merchants()
-            self.transaction_types = self.dictionary_module.get_transaction_types()
-            self.blacklist = self.dictionary_module.get_blacklist()
+            self.dictionaries = self.dictionary_module.get_all_dictionaries()
         else:
-            self.categories = self._load_json_file(self._file_paths['categories'])
-            self.merchants = self._load_json_file(self._file_paths['merchants'])
-            self.transaction_types = self._load_json_file(self._file_paths['transaction_types'])
-            self.blacklist = self._load_json_file(self._file_paths['blacklist'])
+            self.dictionaries = self._load_json_file(self._file_path)
+        
+        # Ensure all required sections exist
+        if 'categories' not in self.dictionaries:
+            self.dictionaries['categories'] = {}
+        if 'merchants' not in self.dictionaries:
+            self.dictionaries['merchants'] = {}
+        if 'transaction_types' not in self.dictionaries:
+            self.dictionaries['transaction_types'] = {}
+        if 'blacklist' not in self.dictionaries:
+            self.dictionaries['blacklist'] = []
     
     def _load_json_file(self, file_path: str) -> Dict:
-        """Load data from a JSON file."""
+        """Load data from the unified JSON file."""
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
                 return json.load(file)
         except Exception as e:
             print(f"Error loading JSON file {file_path}: {e}")
-            return {}
+            return {
+                'categories': {},
+                'merchants': {},
+                'transaction_types': {},
+                'blacklist': []
+            }
     
     def _save_json_file(self, file_path: str, data: Dict) -> bool:
-        """Save data to a JSON file."""
+        """Save data to the unified JSON file."""
         try:
             with open(file_path, 'w', encoding='utf-8') as file:
                 json.dump(data, file, indent=2)
@@ -57,18 +61,12 @@ class DictionaryUpdater:
             print(f"Error saving JSON file {file_path}: {e}")
             return False
     
-    def get_dictionary_info(self, dictionary_name: str) -> Tuple[Dict, str]:
-        """Get a dictionary and its file path by name."""
-        dictionary_map = {
-            'categories': (self.categories, self._file_paths['categories']),
-            'merchants': (self.merchants, self._file_paths['merchants']),
-            'transaction_types': (self.transaction_types, self._file_paths['transaction_types'])
-        }
-        
-        if dictionary_name not in dictionary_map:
+    def get_dictionary_section(self, dictionary_name: str) -> Dict:
+        """Get a specific dictionary section by name."""
+        if dictionary_name not in ['categories', 'merchants', 'transaction_types']:
             raise ValueError(f"Unknown dictionary: {dictionary_name}")
         
-        return dictionary_map[dictionary_name]
+        return self.dictionaries.get(dictionary_name, {})
     
     def _find_matching_keyword(self, keywords: List[str], target_keyword: str) -> Optional[str]:
         """Find a keyword that matches the target (case-insensitive)."""
@@ -79,50 +77,12 @@ class DictionaryUpdater:
         return None
     
     def find_keyword_conflicts(self, dictionary_name: str, keyword: str, 
-                             exclude_subcategory: str = None, exclude_persona: str = None) -> List[Dict[str, str]]:
-        """Find all occurrences of a keyword with proper scoping."""
+                             exclude_subcategory: str = None) -> List[Dict[str, str]]:
+        """Find all occurrences of a keyword within the specified dictionary."""
         conflicts = []
         keyword_lower = keyword.strip().lower()
-        dictionary, _ = self.get_dictionary_info(dictionary_name)
+        dictionary = self.get_dictionary_section(dictionary_name)
         
-        if dictionary_name == "categories":
-            # For categories: Only search within the same persona
-            if exclude_persona and exclude_persona in dictionary:
-                persona_dict = dictionary[exclude_persona]
-                conflicts.extend(self._search_persona_conflicts(
-                    persona_dict, keyword_lower, exclude_subcategory, exclude_persona, dictionary_name
-                ))
-        else:
-            # For merchants and transaction_types: Search globally
-            conflicts.extend(self._search_global_conflicts(
-                dictionary, keyword_lower, exclude_subcategory, dictionary_name
-            ))
-        
-        return conflicts
-    
-    def _search_persona_conflicts(self, persona_dict: Dict, keyword_lower: str, 
-                                exclude_subcategory: str, persona: str, dictionary_name: str) -> List[Dict[str, str]]:
-        """Search for conflicts within a persona."""
-        conflicts = []
-        for subcategory, keywords in persona_dict.items():
-            if exclude_subcategory and subcategory == exclude_subcategory:
-                continue
-            
-            matching_keyword = self._find_matching_keyword(keywords, keyword_lower)
-            if matching_keyword:
-                conflicts.append({
-                    'dictionary': dictionary_name,
-                    'persona': persona,
-                    'subcategory': subcategory,
-                    'conflicting_keyword': matching_keyword,
-                    'location': f"{dictionary_name} -> {persona} -> {subcategory}"
-                })
-        return conflicts
-    
-    def _search_global_conflicts(self, dictionary: Dict, keyword_lower: str, 
-                               exclude_subcategory: str, dictionary_name: str) -> List[Dict[str, str]]:
-        """Search for conflicts globally within a dictionary."""
-        conflicts = []
         for subcategory, keywords in dictionary.items():
             if exclude_subcategory and subcategory == exclude_subcategory:
                 continue
@@ -135,47 +95,15 @@ class DictionaryUpdater:
                     'conflicting_keyword': matching_keyword,
                     'location': f"{dictionary_name} -> {subcategory}"
                 })
+        
         return conflicts
     
-    def find_subcategory_conflicts(self, dictionary_name: str, subcategory: str, 
-                                 persona: str = None) -> List[Dict[str, Any]]:
-        """Find if a subcategory name exists in other contexts within the same dictionary."""
+    def find_subcategory_conflicts(self, dictionary_name: str, subcategory: str) -> List[Dict[str, Any]]:
+        """Find if a subcategory name exists in the specified dictionary."""
         conflicts = []
         subcategory_lower = subcategory.strip().lower()
-        dictionary, _ = self.get_dictionary_info(dictionary_name)
+        dictionary = self.get_dictionary_section(dictionary_name)
         
-        if dictionary_name == "categories":
-            if persona and persona in dictionary:
-                conflicts.extend(self._check_persona_subcategory_conflicts(
-                    dictionary[persona], subcategory_lower, persona, dictionary_name
-                ))
-        else:
-            conflicts.extend(self._check_global_subcategory_conflicts(
-                dictionary, subcategory_lower, dictionary_name
-            ))
-        
-        return conflicts
-    
-    def _check_persona_subcategory_conflicts(self, persona_dict: Dict, subcategory_lower: str, 
-                                           persona: str, dictionary_name: str) -> List[Dict[str, Any]]:
-        """Check for subcategory conflicts within a persona."""
-        conflicts = []
-        for existing_subcategory, keywords in persona_dict.items():
-            if existing_subcategory.lower() == subcategory_lower:
-                conflicts.append({
-                    'dictionary': dictionary_name,
-                    'persona': persona,
-                    'subcategory': existing_subcategory,
-                    'keywords': keywords,
-                    'keywords_count': len(keywords),
-                    'location': f"{dictionary_name} -> {persona} -> {existing_subcategory}"
-                })
-        return conflicts
-    
-    def _check_global_subcategory_conflicts(self, dictionary: Dict, subcategory_lower: str, 
-                                          dictionary_name: str) -> List[Dict[str, Any]]:
-        """Check for subcategory conflicts globally within a dictionary."""
-        conflicts = []
         for existing_subcategory, keywords in dictionary.items():
             if existing_subcategory.lower() == subcategory_lower:
                 conflicts.append({
@@ -185,10 +113,10 @@ class DictionaryUpdater:
                     'keywords_count': len(keywords),
                     'location': f"{dictionary_name} -> {existing_subcategory}"
                 })
+        
         return conflicts
     
-    def find_cross_dictionary_conflicts(self, keyword: str, exclude_dictionary: str = None, 
-                                      current_persona: str = None) -> List[Dict[str, str]]:
+    def find_cross_dictionary_conflicts(self, keyword: str, exclude_dictionary: str = None) -> List[Dict[str, str]]:
         """Find conflicts across all dictionaries for a given keyword."""
         all_conflicts = []
         keyword_lower = keyword.strip().lower()
@@ -197,19 +125,17 @@ class DictionaryUpdater:
             if exclude_dictionary and dict_name == exclude_dictionary:
                 continue
             
-            dictionary, _ = self.get_dictionary_info(dict_name)
+            dictionary = self.get_dictionary_section(dict_name)
             
-            if dict_name == "categories":
-                # Search across all personas for cross-dictionary warnings
-                for persona_name, persona_dict in dictionary.items():
-                    all_conflicts.extend(self._search_persona_conflicts(
-                        persona_dict, keyword_lower, None, persona_name, dict_name
-                    ))
-            else:
-                # Search globally for merchants and transaction_types
-                all_conflicts.extend(self._search_global_conflicts(
-                    dictionary, keyword_lower, None, dict_name
-                ))
+            for subcategory, keywords in dictionary.items():
+                matching_keyword = self._find_matching_keyword(keywords, keyword_lower)
+                if matching_keyword:
+                    all_conflicts.append({
+                        'dictionary': dict_name,
+                        'subcategory': subcategory,
+                        'conflicting_keyword': matching_keyword,
+                        'location': f"{dict_name} -> {subcategory}"
+                    })
         
         return all_conflicts
     
@@ -299,15 +225,8 @@ class DictionaryUpdater:
         for conflict in conflicts:
             try:
                 keyword_to_remove = conflict.get('conflicting_keyword', keyword)
-                
-                if conflict['dictionary'] == 'categories':
-                    success = self.remove_keyword('categories', conflict['subcategory'], 
-                                                keyword_to_remove, conflict['persona'])
-                    location = f"categories -> {conflict['persona']} -> {conflict['subcategory']}"
-                else:
-                    success = self.remove_keyword(conflict['dictionary'], conflict['subcategory'], 
-                                                keyword_to_remove)
-                    location = f"{conflict['dictionary']} -> {conflict['subcategory']}"
+                success = self.remove_keyword(conflict['dictionary'], conflict['subcategory'], keyword_to_remove)
+                location = f"{conflict['dictionary']} -> {conflict['subcategory']}"
                 
                 if success:
                     print(f"Removed '{keyword_to_remove}' from {location}")
@@ -334,11 +253,7 @@ class DictionaryUpdater:
             
             # Show other keywords in the same subcategory
             try:
-                if conflict['dictionary'] == 'categories':
-                    keywords = self.get_keywords('categories', conflict['subcategory'], conflict['persona'])
-                else:
-                    keywords = self.get_keywords(conflict['dictionary'], conflict['subcategory'])
-                
+                keywords = self.get_keywords(conflict['dictionary'], conflict['subcategory'])
                 other_keywords = [k for k in keywords if k.lower() != keyword.lower()]
                 if other_keywords:
                     print(f"  Other keywords in same subcategory: {', '.join(other_keywords[:5])}")
@@ -350,149 +265,109 @@ class DictionaryUpdater:
             except Exception as e:
                 print(f"  Error retrieving keywords: {e}")
     
-    def save_changes(self) -> Dict[str, bool]:
-        """Save all dictionaries to their respective JSON files."""
-        results = {}
-    
-        for dict_name in ['categories', 'merchants', 'transaction_types']:
-            dictionary, file_path = self.get_dictionary_info(dict_name)
-            results[dict_name] = self._save_json_file(file_path, dictionary)
+    def save_changes(self) -> bool:
+        """Save all dictionaries to the unified JSON file."""
+        result = self._save_json_file(self._file_path, self.dictionaries)
         
-        blacklist_path = self._file_paths['blacklist']
-        
-        if not hasattr(self, 'blacklist') or not isinstance(self.blacklist, list):
-            self.blacklist = []
-        
-        results['blacklist'] = self._save_json_file(blacklist_path, self.blacklist)
-        
-        if self.dictionary_module:
+        if result and self.dictionary_module:
             self.dictionary_module.reload_dictionaries()
             
-        return results
+        return result
     
     def get_available_dictionaries(self) -> List[str]:
         """Get a list of available dictionaries that can be updated."""
-        return list(self._file_paths.keys())
+        return ['categories', 'merchants', 'transaction_types', 'blacklist']
     
-    def get_subcategories(self, dictionary_name: str, persona: str = None) -> List[str]:
+    def get_subcategories(self, dictionary_name: str) -> List[str]:
         """Get available subcategories for a given dictionary."""
-        dictionary, _ = self.get_dictionary_info(dictionary_name)
+        if dictionary_name == 'blacklist':
+            return []  # Blacklist doesn't have subcategories
         
-        if dictionary_name == "categories":
-            if persona and persona in dictionary:
-                return list(dictionary[persona].keys())
-            elif persona:
-                raise ValueError(f"Persona '{persona}' not found in categories dictionary")
-            else:
-                return list(dictionary.keys())  # Return personas
-        else:
-            return list(dictionary.keys())
+        dictionary = self.get_dictionary_section(dictionary_name)
+        return list(dictionary.keys())
     
-    def get_keywords(self, dictionary_name: str, subcategory: str, persona: str = None) -> List[str]:
+    def get_keywords(self, dictionary_name: str, subcategory: str) -> List[str]:
         """Get keywords for a specific subcategory."""
-        dictionary, _ = self.get_dictionary_info(dictionary_name)
+        if dictionary_name == 'blacklist':
+            raise ValueError("Blacklist doesn't have subcategories or keywords")
         
-        if dictionary_name == "categories":
-            if not persona:
-                raise ValueError("Persona must be provided for categories dictionary")
-            
-            if persona in dictionary and subcategory in dictionary[persona]:
-                return dictionary[persona][subcategory]
-            else:
-                raise ValueError(f"Subcategory '{subcategory}' not found for persona '{persona}'")
+        dictionary = self.get_dictionary_section(dictionary_name)
+        
+        if subcategory in dictionary:
+            return dictionary[subcategory]
         else:
-            if subcategory in dictionary:
-                return dictionary[subcategory]
-            else:
-                raise ValueError(f"Subcategory '{subcategory}' not found in {dictionary_name} dictionary")
+            raise ValueError(f"Subcategory '{subcategory}' not found in {dictionary_name} dictionary")
     
-    def _keyword_exists_in_subcategory(self, dictionary_name: str, subcategory: str, 
-                                     keyword: str, persona: str = None) -> bool:
+    def _keyword_exists_in_subcategory(self, dictionary_name: str, subcategory: str, keyword: str) -> bool:
         """Check if a keyword already exists in a subcategory."""
         try:
-            existing_keywords = self.get_keywords(dictionary_name, subcategory, persona)
+            existing_keywords = self.get_keywords(dictionary_name, subcategory)
             return any(k.lower() == keyword.lower() for k in existing_keywords)
         except:
             return False
     
     def add_keyword(self, dictionary_name: str, subcategory: str, keyword: str, 
-                   persona: str = None, check_conflicts: bool = True) -> bool:
+                   check_conflicts: bool = True) -> bool:
         """Add a keyword to a subcategory with improved conflict checking."""
+        if dictionary_name == 'blacklist':
+            raise ValueError("Use add_blacklisted_app() for blacklist management")
+        
         keyword = keyword.strip().lower()
         if not keyword:
             return False
         
         # Check if keyword already exists in the target subcategory
-        if self._keyword_exists_in_subcategory(dictionary_name, subcategory, keyword, persona):
-            print(f"Keyword '{keyword}' already exists.")
+        if self._keyword_exists_in_subcategory(dictionary_name, subcategory, keyword):
+            print(f"Keyword '{keyword}' already exists in {dictionary_name} -> {subcategory}.")
             return False
         
         # Check for conflicts if requested
         if check_conflicts:
-            # Check for conflicts within the appropriate scope
-            if dictionary_name == "categories":
-                conflicts = self.find_keyword_conflicts(dictionary_name, keyword, subcategory, persona)
-            else:
-                conflicts = self.find_keyword_conflicts(dictionary_name, keyword, subcategory)
+            # Check for conflicts within the same dictionary
+            conflicts = self.find_keyword_conflicts(dictionary_name, keyword, subcategory)
             
             # Show cross-dictionary conflicts as warnings
-            cross_conflicts = self.find_cross_dictionary_conflicts(keyword, dictionary_name, persona)
+            cross_conflicts = self.find_cross_dictionary_conflicts(keyword, dictionary_name)
             if cross_conflicts:
                 print(f"\nWARNING: '{keyword}' also exists in other dictionaries:")
                 print(self.get_conflict_summary(cross_conflicts))
                 print("This may cause classification conflicts during transaction parsing.")
             
-            # Handle conflicts within the same scope
+            # Handle conflicts within the same dictionary
             if conflicts:
                 if not self.prompt_user_for_conflict_resolution(keyword, conflicts, "add"):
                     return False
         
-        return self._add_keyword_to_dictionary(dictionary_name, subcategory, keyword, persona)
+        return self._add_keyword_to_dictionary(dictionary_name, subcategory, keyword)
     
-    def _add_keyword_to_dictionary(self, dictionary_name: str, subcategory: str, 
-                                 keyword: str, persona: str = None) -> bool:
+    def _add_keyword_to_dictionary(self, dictionary_name: str, subcategory: str, keyword: str) -> bool:
         """Add keyword to the appropriate dictionary structure."""
         try:
-            dictionary, _ = self.get_dictionary_info(dictionary_name)
+            dictionary = self.get_dictionary_section(dictionary_name)
             
-            if dictionary_name == "categories":
-                if not persona:
-                    raise ValueError("Persona must be provided for categories dictionary")
-                
-                if persona not in dictionary:
-                    dictionary[persona] = {}
-                
-                if subcategory not in dictionary[persona]:
-                    dictionary[persona][subcategory] = []
-                
-                dictionary[persona][subcategory].append(keyword)
-            else:
-                if subcategory not in dictionary:
-                    dictionary[subcategory] = []
-                
-                dictionary[subcategory].append(keyword)
+            if subcategory not in dictionary:
+                dictionary[subcategory] = []
             
+            dictionary[subcategory].append(keyword)
             return True
         except Exception as e:
             print(f"Error adding keyword: {e}")
             return False
     
-    def remove_keyword(self, dictionary_name: str, subcategory: str, keyword: str, 
-                      persona: str = None) -> bool:
+    def remove_keyword(self, dictionary_name: str, subcategory: str, keyword: str) -> bool:
         """Remove a keyword from a subcategory."""
+        if dictionary_name == 'blacklist':
+            raise ValueError("Use remove_blacklisted_app() for blacklist management")
+        
         keyword_lower = keyword.strip().lower()
         
         try:
-            dictionary, _ = self.get_dictionary_info(dictionary_name)
+            dictionary = self.get_dictionary_section(dictionary_name)
             
-            if dictionary_name == "categories":
-                if not persona or persona not in dictionary or subcategory not in dictionary[persona]:
-                    return False
-                keywords = dictionary[persona][subcategory]
-            else:
-                if subcategory not in dictionary:
-                    return False
-                keywords = dictionary[subcategory]
+            if subcategory not in dictionary:
+                return False
+            
+            keywords = dictionary[subcategory]
             
             # Find and remove the keyword (case-insensitive)
             for i, k in enumerate(keywords):
@@ -505,16 +380,18 @@ class DictionaryUpdater:
             print(f"Error removing keyword: {e}")
             return False
     
-    def add_subcategory(self, dictionary_name: str, subcategory: str, 
-                       persona: str = None, check_conflicts: bool = True) -> bool:
+    def add_subcategory(self, dictionary_name: str, subcategory: str, check_conflicts: bool = True) -> bool:
         """Add a new subcategory to a dictionary with conflict checking."""
+        if dictionary_name == 'blacklist':
+            raise ValueError("Blacklist doesn't support subcategories")
+        
         subcategory = subcategory.strip().lower()
         if not subcategory:
             return False
         
         # Check for conflicts if requested
         if check_conflicts:
-            conflicts = self.find_subcategory_conflicts(dictionary_name, subcategory, persona)
+            conflicts = self.find_subcategory_conflicts(dictionary_name, subcategory)
             
             if conflicts:
                 print(f"\nCONFLICT: Subcategory '{subcategory}' already exists:")
@@ -524,92 +401,45 @@ class DictionaryUpdater:
                 if proceed != 'y':
                     return False
         
-        return self._add_subcategory_to_dictionary(dictionary_name, subcategory, persona)
+        return self._add_subcategory_to_dictionary(dictionary_name, subcategory)
     
-    def _add_subcategory_to_dictionary(self, dictionary_name: str, subcategory: str, 
-                                     persona: str = None) -> bool:
+    def _add_subcategory_to_dictionary(self, dictionary_name: str, subcategory: str) -> bool:
         """Add subcategory to the appropriate dictionary structure."""
         try:
-            dictionary, _ = self.get_dictionary_info(dictionary_name)
+            dictionary = self.get_dictionary_section(dictionary_name)
             
-            if dictionary_name == "categories":
-                if not persona:
-                    raise ValueError("Persona must be provided for categories dictionary")
-                
-                if persona not in dictionary:
-                    dictionary[persona] = {}
-                
-                if subcategory not in dictionary[persona]:
-                    dictionary[persona][subcategory] = []
-            else:
-                if subcategory not in dictionary:
-                    dictionary[subcategory] = []
+            if subcategory not in dictionary:
+                dictionary[subcategory] = []
             
             return True
         except Exception as e:
             print(f"Error adding subcategory: {e}")
             return False
     
-    def add_persona(self, persona: str, check_conflicts: bool = True) -> bool:
-        """Add a new persona to the categories dictionary."""
-        persona = persona.strip().lower()
-        if not persona:
-            return False
-        
-        # Check for conflicts if requested
-        if check_conflicts and persona in self.categories:
-            print(f"\nCONFLICT: Persona '{persona}' already exists in categories dictionary.")
-            proceed = input(f"Do you want to proceed anyway? (y/n): ").strip().lower()
-            if proceed != 'y':
-                return False
-        
-        try:
-            if persona not in self.categories:
-                self.categories[persona] = {}
-            return True
-        except Exception as e:
-            print(f"Error adding persona: {e}")
-            return False
-    
-    def remove_subcategory(self, dictionary_name: str, subcategory: str, persona: str = None) -> bool:
+    def remove_subcategory(self, dictionary_name: str, subcategory: str) -> bool:
         """Remove a subcategory from a dictionary."""
+        if dictionary_name == 'blacklist':
+            raise ValueError("Blacklist doesn't support subcategories")
+        
         try:
-            dictionary, _ = self.get_dictionary_info(dictionary_name)
+            dictionary = self.get_dictionary_section(dictionary_name)
             
-            if dictionary_name == "categories":
-                if not persona or persona not in dictionary or subcategory not in dictionary[persona]:
-                    return False
-                del dictionary[persona][subcategory]
-            else:
-                if subcategory not in dictionary:
-                    return False
-                del dictionary[subcategory]
+            if subcategory not in dictionary:
+                return False
             
+            del dictionary[subcategory]
             return True
         except Exception as e:
             print(f"Error removing subcategory: {e}")
             return False
     
-    def remove_persona(self, persona: str) -> bool:
-        """Remove a persona from the categories dictionary."""
-        try:
-            if persona in self.categories:
-                del self.categories[persona]
-                return True
-            return False
-        except Exception as e:
-            print(f"Error removing persona: {e}")
-            return False
-
     def get_blacklisted_apps(self) -> List[str]:
         """Get the list of blacklisted apps."""
-        if not hasattr(self, 'blacklist'):
-            self.blacklist = []
-        
-        if not isinstance(self.blacklist, list):
-            self.blacklist = []
-        
-        return self.blacklist
+        blacklist = self.dictionaries.get('blacklist', [])
+        if not isinstance(blacklist, list):
+            self.dictionaries['blacklist'] = []
+            return []
+        return blacklist
 
     def add_blacklisted_app(self, app_identifier: str) -> bool:
         """Add an app to the blacklist."""
@@ -617,25 +447,46 @@ class DictionaryUpdater:
         if not app_identifier:
             return False
         
-        if not hasattr(self, 'blacklist') or not isinstance(self.blacklist, list):
-            self.blacklist = []
+        blacklist = self.get_blacklisted_apps()
         
-        if any(app.lower() == app_identifier.lower() for app in self.blacklist):
+        if any(app.lower() == app_identifier.lower() for app in blacklist):
             print(f"App '{app_identifier}' is already blacklisted.")
             return False
         
-        self.blacklist.append(app_identifier)
+        blacklist.append(app_identifier)
         return True
 
     def remove_blacklisted_app(self, app_identifier: str) -> bool:
         """Remove an app from the blacklist."""
-        if not hasattr(self, 'blacklist') or not isinstance(self.blacklist, list):
-            return False
+        blacklist = self.get_blacklisted_apps()
         
         # Find and remove the app (case-insensitive)
-        for i, app in enumerate(self.blacklist):
+        for i, app in enumerate(blacklist):
             if app.lower() == app_identifier.lower():
-                self.blacklist.pop(i)
+                blacklist.pop(i)
                 return True
         
         return False
+    
+    def get_all_dictionaries(self) -> Dict:
+        """Get the complete unified dictionary structure."""
+        return self.dictionaries
+    
+    def get_dictionary_stats(self) -> Dict[str, int]:
+        """Get statistics about each dictionary section."""
+        stats = {}
+        
+        for dict_name in ['categories', 'merchants', 'transaction_types']:
+            dictionary = self.get_dictionary_section(dict_name)
+            total_keywords = sum(len(keywords) for keywords in dictionary.values())
+            stats[dict_name] = {
+                'subcategories': len(dictionary),
+                'total_keywords': total_keywords
+            }
+        
+        blacklist = self.get_blacklisted_apps()
+        stats['blacklist'] = {
+            'total_apps': len(blacklist)
+        }
+        
+        return stats

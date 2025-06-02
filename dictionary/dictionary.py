@@ -1,20 +1,18 @@
 """
-Categories for transaction classification based on user personas.
-This module loads predefined category dictionaries from JSON files.
+Categories for transaction classification using unified dictionary structure.
+This module loads all dictionaries from a single JSON file.
+Removes persona-based categorization - uses only general categories.
 """
 import json
 import os
 
-# Define the path to the JSON files
+# Define the path to the unified JSON file
 _CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-_CATEGORIES_FILE = os.path.join(_CURRENT_DIR, 'categories.json')
-_MERCHANTS_FILE = os.path.join(_CURRENT_DIR, 'merchants.json')
-_TRANSACTION_TYPES_FILE = os.path.join(_CURRENT_DIR, 'transaction_types.json')
-_BLACKLIST_FILE = os.path.join(_CURRENT_DIR, 'blacklist.json')
+_DICTIONARY_FILE = os.path.join(_CURRENT_DIR, 'dictionary.json')
 
 def _load_json_file(file_path):
     """
-    Helper function to load data from a JSON file.
+    Helper function to load data from the unified JSON file.
     
     Args:
         file_path (str): Path to the JSON file
@@ -26,20 +24,12 @@ def _load_json_file(file_path):
         with open(file_path, 'r', encoding='utf-8') as file:
             return json.load(file)
     except (FileNotFoundError, json.JSONDecodeError, Exception):
-        # Fall back to hardcoded defaults if JSON file loading fails
-        if 'categories.json' in file_path:
-            return _default_categories
-        elif 'merchants.json' in file_path:
-            return _default_merchants
-        elif 'transaction_types.json' in file_path:
-            return _default_transaction_types
-        elif 'blacklist.json' in file_path:
-            return {"blacklisted_apps": []}
-        return {}
+        print(f"Error loading dictionary from {file_path}. Using default dictionary.")
+        return _default_dictionary
 
-# Default dictionaries to use as fallbacks if JSON files aren't loaded correctly
-_default_categories = {
-    "general": {
+# Default unified dictionary structure
+_default_dictionary = {
+    "categories": {
         "food": ["food", "meal", "restaurant", "order", "menu", "eat", "lunch", "dinner", "breakfast", "gofood", "groceries", "dining"],
         "transport": ["ride", "trip", "gocar", "grab", "transport", "travel", "driver", "gojek ride", "blue bird", "taxi", "fuel", "bus", "transit"],
         "shopping": ["purchase", "buy", "shopping", "shop", "amazon", "store", "item", "product", "tokopedia", "shopee", "lazada"],
@@ -49,41 +39,33 @@ _default_categories = {
         "finance": ["gopay", "payment", "wallet", "jenius", "bank", "credit", "debit", "card", "saving", "investment", "insurance"],
         "education": ["course", "class", "learning", "tuition", "school", "university", "books", "textbooks"],
         "health": ["medicine", "doctor", "hospital", "health", "medical", "pharmacy", "prescription", "gym"]
-    }
+    },
+    "merchants": {
+        "transport": ["blue bird", "gojek ride", "grab", "taxi", "uber"],
+        "food": ["gofood", "grabfood", "food delivery", "mie gacoan"],
+        "shopping": ["tokopedia", "shopee", "lazada", "amazon", "airpay"],
+        "finance": ["gopay", "jenius"]
+    },
+    "transaction_types": {
+        "income": ["received", "receive", "refund", "cashback", "payment from", "transfer from", "credit", "deposit", "bonus", "salary", "reimbursement"],
+        "expense": ["paid", "payment to", "sent", "pay", "purchase", "bought", "deducted", "bought", "charged", "payment for", "subscription fee"],
+        "transfer": ["transfer", "send to", "sent to", "moved", "moving funds", "fund transfer"],
+        "top_up": ["top-up", "top up", "topup", "topped up", "reload", "reload balance", "add money", "added to wallet"]
+    },
+    "blacklist": []
 }
 
-_default_merchants = {
-    "transport": ["blue bird", "gojek ride", "grab", "taxi", "uber"],
-    "food": ["gofood", "grabfood", "food delivery", "mie gacoan"],
-    "shopping": ["tokopedia", "shopee", "lazada", "amazon", "airpay"],
-    "finance": ["gopay", "jenius"]
-}
+# Load unified dictionary from JSON file with fallback to defaults
+_DICTIONARY = _load_json_file(_DICTIONARY_FILE)
 
-_default_transaction_types = {
-    "income": ["received", "receive", "refund", "cashback", "payment from", "transfer from", "credit", "deposit", "bonus", "salary", "reimbursement"],
-    "expense": ["paid", "payment to", "sent", "pay", "purchase", "bought", "deducted", "bought", "charged", "payment for", "subscription fee"],
-    "transfer": ["transfer", "send to", "sent to", "moved", "moving funds", "fund transfer"],
-    "top_up": ["top-up", "top up", "topup", "topped up", "reload", "reload balance", "add money", "added to wallet"]
-}
-
-# Load dictionaries from JSON files with fallback to defaults
-_CATEGORIES = _load_json_file(_CATEGORIES_FILE)
-_MERCHANTS = _load_json_file(_MERCHANTS_FILE)
-_TRANSACTION_TYPES = _load_json_file(_TRANSACTION_TYPES_FILE)
-_BLACKLIST = _load_json_file(_BLACKLIST_FILE)
-
-def get_categories_for_persona(persona="general"):
+def get_categories():
     """
-    Get the category dictionary for the specified persona.
+    Get the category dictionary.
     
-    Args:
-        persona (str): User persona (student, young professional, etc.)
-        
     Returns:
-        dict: Category dictionary for the specified persona
+        dict: Category dictionary
     """
-    persona_key = persona.strip().lower()
-    return _CATEGORIES.get(persona_key, _CATEGORIES.get("general", {}))
+    return _DICTIONARY.get("categories", {})
 
 def get_merchants():
     """
@@ -92,7 +74,7 @@ def get_merchants():
     Returns:
         dict: Merchant category dictionary
     """
-    return _MERCHANTS
+    return _DICTIONARY.get("merchants", {})
 
 def get_transaction_types():
     """
@@ -101,43 +83,85 @@ def get_transaction_types():
     Returns:
         dict: Transaction types dictionary
     """
-    return _TRANSACTION_TYPES
-
-def get_all_categories():
-    """
-    Get the complete categories dictionary.
-    
-    Returns:
-        dict: Complete categories dictionary
-    """
-    return _CATEGORIES
+    return _DICTIONARY.get("transaction_types", {})
 
 def get_blacklist():
     """
-    Get the blacklist dictionary.
+    Get the blacklist.
     
     Returns:
-        dict: Blacklist dictionary
-    """    
-    return _BLACKLIST
+        list: Blacklisted apps list
+    """
+    return _DICTIONARY.get("blacklist", [])
+
+def get_all_dictionaries():
+    """
+    Get the complete unified dictionary structure.
+    
+    Returns:
+        dict: Complete unified dictionary
+    """
+    return _DICTIONARY
 
 def reload_dictionaries():
     """
-    Reload all dictionaries from their JSON files.
+    Reload all dictionaries from the unified JSON file.
     Useful for updating the dictionaries without restarting the application.
-    """
-    global _CATEGORIES, _MERCHANTS, _TRANSACTION_TYPES, _BLACKLIST
-    _CATEGORIES = _load_json_file(_CATEGORIES_FILE)
-    _MERCHANTS = _load_json_file(_MERCHANTS_FILE)
-    _TRANSACTION_TYPES = _load_json_file(_TRANSACTION_TYPES_FILE)
-    _BLACKLIST = _load_json_file(_BLACKLIST_FILE)
     
-    blacklist_data = get_blacklist()
-    blacklist_count = len(blacklist_data) if blacklist_data else 0
+    Returns:
+        dict: Statistics about loaded dictionaries
+    """
+    global _DICTIONARY
+    _DICTIONARY = _load_json_file(_DICTIONARY_FILE)
+
+    # Calculate statistics
+    categories = get_categories()
+    merchants = get_merchants()
+    transaction_types = get_transaction_types()
+    blacklist = get_blacklist()
+    
+    categories_keywords = sum(len(keywords) for keywords in categories.values()) if categories else 0
+    merchants_keywords = sum(len(keywords) for keywords in merchants.values()) if merchants else 0
+    transaction_types_keywords = sum(len(keywords) for keywords in transaction_types.values()) if transaction_types else 0
+    blacklist_count = len(blacklist) if isinstance(blacklist, list) else 0
     
     return {
-        "categories": len(_CATEGORIES),
-        "merchants": len(_MERCHANTS),
-        "transaction_types": len(_TRANSACTION_TYPES),
-        "blacklist": blacklist_count
+        "categories": {
+            "subcategories": len(categories),
+            "total_keywords": categories_keywords
+        },
+        "merchants": {
+            "subcategories": len(merchants),
+            "total_keywords": merchants_keywords
+        },
+        "transaction_types": {
+            "subcategories": len(transaction_types),
+            "total_keywords": transaction_types_keywords
+        },
+        "blacklist": {
+            "total_apps": blacklist_count
+        }
     }
+
+# Backward compatibility functions (deprecated - use the new functions above)
+def get_categories_for_persona(persona="general"):
+    """
+    DEPRECATED: Get categories (persona parameter is ignored).
+    Use get_categories() instead.
+    
+    Args:
+        persona (str): Ignored - kept for backward compatibility
+        
+    Returns:
+        dict: Category dictionary
+    """
+    return get_categories()
+
+def get_all_categories():
+    """
+    DEPRECATED: Use get_categories() instead.
+    
+    Returns:
+        dict: Category dictionary
+    """
+    return get_categories()
