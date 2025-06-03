@@ -14,9 +14,10 @@ class DictionaryUpdater:
         """Initialize the dictionary updater with path to the unified JSON file."""
         self.dictionary_module = dictionary_module
         
+        
         # Define path to the unified JSON file
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        self._file_path = os.path.join(current_dir, 'dictionary.json')
+        self._file_path = os.path.join(current_dir, 'dictionary\dictionary.json')
         
         self._load_dictionaries()
     
