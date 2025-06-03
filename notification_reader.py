@@ -5,7 +5,8 @@ import re
 from enum import Enum
 import io
 import dictionary.dictionary as dictionary
-from dictionary.dictionary_updater import DictionaryUpdater
+from dictionary_updater import DictionaryUpdater
+from persona_manager import PersonaManager, run_persona_selector
 
 
 class TransactionType(Enum):
@@ -309,13 +310,14 @@ class DictionaryManager:
     
     def __init__(self):
         self.updater = DictionaryUpdater(dictionary)
+        self.persona_manager = PersonaManager(dictionary)
     
     def run_interactive_updater(self):
         """Main interactive dictionary updater."""
         print("\n" + "=" * 50)
         print("DICTIONARY UPDATER")
-        print("Update transaction categorization dictionaries")
-        print(f"Current dictionaries: {', '.join(self.updater.get_available_dictionaries())}")
+        print("Update transaction categorization dictionaries or apply personas")
+        print(f"Available features: Dictionary Updates, Persona Selection")
         
         # Show current statistics
         stats = self.updater.get_dictionary_stats()
@@ -324,27 +326,37 @@ class DictionaryManager:
             if dict_name == 'blacklist':
                 print(f"  {dict_name}: {stat['total_apps']} apps")
             else:
-                print(f"  {dict_name}: {stat['subcategories']} subcategories, {stat['total_keywords']} keywords")
-        
+                if isinstance(stat, dict) and 'subcategories' in stat:
+                    print(f"  {dict_name}: {stat['subcategories']} subcategories, {stat['total_keywords']} keywords")
+                else:
+                    # Handle simple dictionary structure
+                    total_items = len(stat) if isinstance(stat, (list, dict)) else 0
+                    print(f"  {dict_name}: {total_items} items")
+                    
         while True:
             choice = self._get_main_menu_choice()
             
             if choice == "1":
+                # Persona selector
+                self.persona_manager.run_persona_selector()
+                # Reload updater after potential persona change
+                self.updater = DictionaryUpdater(dictionary)
+            elif choice == "2":
                 if not self._update_dictionary("categories"):
                     break
-            elif choice == "2":
+            elif choice == "3":
                 if not self._update_dictionary("merchants"):
                     break
-            elif choice == "3":
+            elif choice == "4":
                 if not self._update_dictionary("transaction_types"):
                     break
-            elif choice == "4":
+            elif choice == "5":
                 if not self._update_blacklist():
                     break
-            elif choice == "5":
-                self._show_dictionary_stats()
             elif choice == "6":
-                print("\nExiting dictionary updater.")
+                self._show_dictionary_stats()
+            elif choice == "7":
+                print("\nExiting dictionary manager.")
                 break
             else:
                 print("\nInvalid choice. Please try again.")
@@ -352,14 +364,15 @@ class DictionaryManager:
     def _get_main_menu_choice(self):
         """Display main menu and get user choice."""
         print("\n" + "=" * 50)
-        print("SELECT DICTIONARY TO UPDATE")
-        print("1. Categories")
-        print("2. Merchants") 
-        print("3. Transaction Types")
-        print("4. Blacklisted Apps")
-        print("5. Show Statistics")
-        print("6. Exit")
-        return input("\nEnter your choice [1-6]: ").strip()
+        print("DICTIONARY MANAGER MENU")
+        print("1. Select & Apply Persona (Replace Categories)")
+        print("2. Update Categories")
+        print("3. Update Merchants") 
+        print("4. Update Transaction Types")
+        print("5. Update Blacklisted Apps")
+        print("6. Show Statistics")
+        print("7. Exit")
+        return input(f"\nEnter your choice [1-7]: ").strip()
     
     def _show_dictionary_stats(self):
         """Display detailed dictionary statistics."""

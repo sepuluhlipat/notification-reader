@@ -7,6 +7,7 @@
 *.xlsx
 
 venv/
+backups/
 __pycache__/
 __marimo__/
 *.pyc
