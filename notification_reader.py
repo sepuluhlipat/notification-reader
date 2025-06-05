@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 import re
+import json
+import os
 from enum import Enum
 import io
 import dictionary.dictionary as dictionary
@@ -24,9 +26,6 @@ class Transaction:
         self.transaction_type = TransactionType.UNKNOWN
         self.amount = None
         self.account_number = None
-        self.from_account = None
-        self.to_account = None
-        self.balance = None
         self.category = None
     
     def to_dict(self):
@@ -41,83 +40,162 @@ class Transaction:
         final_category = self.category
         if not final_category and self.transaction_type != TransactionType.UNKNOWN:
             final_category = default_categories.get(self.transaction_type)
-            
-        account = None
-        if self.transaction_type == TransactionType.INCOME:
-            account = self.to_account or 'GoPay'
-        elif self.transaction_type == TransactionType.EXPENSE:
-            account = self.from_account or 'GoPay'
-        elif self.transaction_type == TransactionType.TRANSFER:
-            if self.from_account and self.to_account:
-                account = f"{self.from_account} -> {self.to_account}"
-            else:
-                account = self.from_account or self.to_account or 'GoPay'
-        else:
-            account = self.from_account or self.to_account or 'GoPay'
         
         return {
             "id": self.id,
             "timestamp": self.timestamp,
             "transaction_type": self.transaction_type.value,
             "amount": self.amount,
-            "account": account, 
+            "account_number": self.account_number,
             "category": final_category,
         }
 
 
+class RegexPatternLoader:
+    """Handles loading and managing regex patterns from JSON file."""
+    
+    def __init__(self, patterns_file=os.path.join('dictionary', 'regex_patterns.json')):
+        self.patterns_file = patterns_file
+        self.patterns = {}
+        self._load_patterns()
+    
+    def _load_patterns(self):
+        """Load regex patterns from JSON file."""
+        try:
+            # Try to load from the same directory as this script
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            patterns_path = os.path.join(current_dir, self.patterns_file)
+            
+            if os.path.exists(patterns_path):
+                with open(patterns_path, 'r', encoding='utf-8') as f:
+                    self.patterns = json.load(f)
+            else:
+                # Fallback to current working directory
+                if os.path.exists(self.patterns_file):
+                    with open(self.patterns_file, 'r', encoding='utf-8') as f:
+                        self.patterns = json.load(f)
+                else:
+                    # Create default patterns if file doesn't exist
+                    self._create_default_patterns()
+                    self._save_patterns()
+                    
+        except (json.JSONDecodeError, FileNotFoundError, IOError) as e:
+            print(f"Warning: Could not load regex patterns from {self.patterns_file}: {e}")
+            print("Using default patterns...")
+            self._create_default_patterns()
+    
+    def _create_default_patterns(self):
+        """Create default regex patterns if file doesn't exist."""
+        self.patterns = {
+            "amount_patterns": [
+                r'(?:Rp|IDR)\s*(\d+(?:[.,]\d+)*)',
+                r'(\d+(?:[.,]\d+)*)\s*(?:rupiah|rupi)',
+                r'(?:received|sent|paid|payment|transfer|top.up|topup|refund|cashback)\s+(?:of\s+)?(?:Rp|IDR)?\s*(\d+(?:[.,]\d+)*)',
+                r'(\d+)\s+(?:GoPay Coins|Coins)',
+                r'(\d+(?:[.,]\d+)*)'
+            ],
+            "account_patterns": [
+                r'account\s+(?:number|#)?\s*[:\.]?\s*(\d+)',
+                r'card\s+(?:number|#)?\s*[:\.]?\s*[*xX]+(\d{4})',
+                r'(?:account|card)\s+ending\s+(?:in|with)\s+(\d{4})'
+            ],
+            "special_patterns": {
+                "gopay_coins": r'\d+\s+(?:GoPay Coins|Coins)'
+            }
+        }
+    
+    def _save_patterns(self):
+        """Save current patterns to JSON file."""
+        try:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            patterns_path = os.path.join(current_dir, self.patterns_file)
+            
+            with open(patterns_path, 'w', encoding='utf-8') as f:
+                json.dump(self.patterns, f, indent=2, ensure_ascii=False)
+        except IOError as e:
+            print(f"Warning: Could not save patterns to {self.patterns_file}: {e}")
+    
+    def get_amount_patterns(self):
+        """Get amount extraction patterns."""
+        return self.patterns.get('amount_patterns', [])
+    
+    def get_account_patterns(self):
+        """Get account number extraction patterns."""
+        return self.patterns.get('account_patterns', [])
+    
+    def get_special_pattern(self, pattern_name):
+        """Get a specific special pattern."""
+        return self.patterns.get('special_patterns', {}).get(pattern_name, '')
+    
+    def add_amount_pattern(self, pattern):
+        """Add a new amount pattern."""
+        if 'amount_patterns' not in self.patterns:
+            self.patterns['amount_patterns'] = []
+        if pattern not in self.patterns['amount_patterns']:
+            self.patterns['amount_patterns'].append(pattern)
+            self._save_patterns()
+            return True
+        return False
+    
+    def add_account_pattern(self, pattern):
+        """Add a new account pattern."""
+        if 'account_patterns' not in self.patterns:
+            self.patterns['account_patterns'] = []
+        if pattern not in self.patterns['account_patterns']:
+            self.patterns['account_patterns'].append(pattern)
+            self._save_patterns()
+            return True
+        return False
+    
+    def remove_amount_pattern(self, pattern):
+        """Remove an amount pattern."""
+        if 'amount_patterns' in self.patterns and pattern in self.patterns['amount_patterns']:
+            self.patterns['amount_patterns'].remove(pattern)
+            self._save_patterns()
+            return True
+        return False
+    
+    def remove_account_pattern(self, pattern):
+        """Remove an account pattern."""
+        if 'account_patterns' in self.patterns and pattern in self.patterns['account_patterns']:
+            self.patterns['account_patterns'].remove(pattern)
+            self._save_patterns()
+            return True
+        return False
+    
+    def reload_patterns(self):
+        """Reload patterns from file."""
+        self._load_patterns()
+
+
 class NotificationParser:
-    def __init__(self):
-        """Initialize parser with unified dictionaries."""
+    def __init__(self, patterns_file=os.path.join('dictionary', 'regex_patterns.json')):
+        """Initialize parser with unified dictionaries and regex patterns."""
+        self.pattern_loader = RegexPatternLoader(patterns_file)
         self._load_dictionaries()
         self._compile_patterns()
     
     def _load_dictionaries(self):
         """Load all required dictionaries."""
-        # Load from unified dictionary structure
         self.categories = dictionary.get_categories()
         self.merchants = dictionary.get_merchants()
         self.transaction_types = dictionary.get_transaction_types()
         self.blacklisted_apps = dictionary.get_blacklist()
     
     def _compile_patterns(self):
-        """Compile regex patterns for transaction extraction."""
-        self.amount_patterns = [
-            r'(?:Rp|IDR)\s*(\d+(?:[.,]\d+)*)',
-            r'(\d+(?:[.,]\d+)*)\s*(?:rupiah|rupi)',
-            r'(?:received|sent|paid|payment|transfer|top.up|topup|refund|cashback|balance)\s+(?:of\s+)?(?:Rp|IDR)?\s*(\d+(?:[.,]\d+)*)',
-            r'(\d+)\s+(?:GoPay Coins|Coins)',
-            r'(\d+(?:[.,]\d+)*)'
-        ]
-        
-        self.balance_patterns = [
-            r'(?:balance|saldo)(?:\s+is|\s+now|\s+remaining|\:)?\s+(?:Rp|IDR)?\s*(\d+(?:[.,]\d+)*)',
-            r'(?:available|remaining)\s+(?:balance|saldo)(?:\s+is|\:)?\s+(?:Rp|IDR)?\s*(\d+(?:[.,]\d+)*)',
-            r'(?:you\s+have|your)\s+(?:balance|saldo)(?:\s+is|\:)?\s+(?:Rp|IDR)?\s*(\d+(?:[.,]\d+)*)'
-        ]
-        
-        self.account_patterns = [
-            r'account\s+(?:number|#)?\s*[:\.]?\s*(\d+)',
-            r'card\s+(?:number|#)?\s*[:\.]?\s*[*xX]+(\d{4})',
-            r'(?:account|card)\s+ending\s+(?:in|with)\s+(\d{4})'
-        ]
-        
-        self.from_account_patterns = [
-            r'from\s+(?:account)?\s*(?:number)?\s*[:\.]?\s*([\w\s]+?)(?:\.|\s*$)',
-            r'([\w\s]+?)\s+sent\s+you',
-            r'received\s+from\s+([\w\s]+?)(?:\.|\s*$)',
-            r'from\s+your\s+([\w\s]+?)(?:\.|\s*$)'
-        ]
-        
-        self.to_account_patterns = [
-            r'to\s+(?:account)?\s*(?:number)?\s*[:\.]?\s*([\w\s\-&\']+?)(?:\.|\s*$|\s+for|\s+on|\s+at|\s+with)',
-            r'sent\s+to\s+([\w\s\-&\']+?)(?:\.|\s*$|\s+for|\s+on|\s+at|\s+with)',
-            r'paid\s+to\s+([\w\s\-&\']+?)(?:\.|\s*$|\s+for|\s+on|\s+at|\s+with)',
-            r'payment\s+(?:successfully\s+)?made\s+to\s+([\w\s\-&\']+?)(?:\.|\s*$|\s+for|\s+on|\s+at|\s+with)'
-        ]
+        """Load regex patterns from the pattern loader."""
+        self.amount_patterns = self.pattern_loader.get_amount_patterns()
+        self.account_patterns = self.pattern_loader.get_account_patterns()
+        self.gopay_coins_pattern = self.pattern_loader.get_special_pattern('gopay_coins')
     
     def reload_dictionaries(self):
         """Reload dictionaries (useful after updates)."""
         self._load_dictionaries()
+    
+    def reload_patterns(self):
+        """Reload regex patterns (useful after pattern updates)."""
+        self.pattern_loader.reload_patterns()
+        self._compile_patterns()
     
     def _extract_with_patterns(self, text, patterns):
         """Generic pattern extraction helper."""
@@ -125,9 +203,13 @@ class NotificationParser:
             return None
             
         for pattern in patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                return match.group(1)
+            try:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    return match.group(1)
+            except re.error as e:
+                print(f"Warning: Invalid regex pattern '{pattern}': {e}")
+                continue
         return None
     
     def _clean_amount(self, amount_str):
@@ -145,26 +227,9 @@ class NotificationParser:
         amount_str = self._extract_with_patterns(text, self.amount_patterns)
         return self._clean_amount(amount_str)
     
-    def extract_balance(self, text):
-        """Extract balance information from text."""
-        balance_str = self._extract_with_patterns(text, self.balance_patterns)
-        return self._clean_amount(balance_str)
-    
     def extract_account_number(self, text):
         """Extract account numbers from text."""
         return self._extract_with_patterns(text, self.account_patterns)
-    
-    def extract_from_account(self, text):
-        """Extract sender account information."""
-        result = self._extract_with_patterns(text, self.from_account_patterns)
-        return result.strip() if result else None
-    
-    def extract_to_account(self, text):
-        """Extract recipient account information."""
-        result = self._extract_with_patterns(text, self.to_account_patterns)
-        if result:
-            return result.strip().rstrip('.')
-        return None
     
     def extract_transaction_type(self, text):
         """Determine transaction type based on text content."""
@@ -206,23 +271,6 @@ class NotificationParser:
         
         return "other"
     
-    def _apply_default_accounts(self, transaction):
-        """Apply default account values based on transaction type."""
-        if transaction.transaction_type == TransactionType.INCOME and not transaction.to_account:
-            transaction.to_account = 'GoPay'
-        elif transaction.transaction_type == TransactionType.EXPENSE and not transaction.from_account:
-            transaction.from_account = 'GoPay'
-    
-    def _categorize_by_merchant(self, transaction, text):
-        """Categorize transaction based on merchant information."""
-        if transaction.to_account:
-            to_account_lower = transaction.to_account.lower()
-            for category, merchants in self.merchants.items():
-                if any(merchant in to_account_lower for merchant in merchants):
-                    return category
-        
-        return self.extract_category(text)
-    
     def parse_notification(self, message, contents, id=None, timestamp=None, app_name=None):
         """Parse notification and extract transaction details."""
         if app_name and self._is_app_blacklisted(app_name):
@@ -234,19 +282,12 @@ class NotificationParser:
         transaction.transaction_type = self.extract_transaction_type(full_text)
         transaction.amount = self.extract_amount(full_text)
         transaction.account_number = self.extract_account_number(full_text)
-        transaction.from_account = self.extract_from_account(full_text)
-        transaction.to_account = self.extract_to_account(full_text)
-        transaction.balance = self.extract_balance(full_text)
+        transaction.category = self.extract_category(full_text)
         
-        # Handle special case for GoPay Coins
-        if re.search(r'\d+\s+(?:GoPay Coins|Coins)', full_text):
+        # Handle special case for GoPay Coins using pattern from file
+        if self.gopay_coins_pattern and re.search(self.gopay_coins_pattern, full_text):
             transaction.transaction_type = TransactionType.INCOME
             transaction.category = "cashback"
-        
-        self._apply_default_accounts(transaction)
-        
-        if not transaction.category:
-            transaction.category = self._categorize_by_merchant(transaction, full_text)
         
         return transaction
     
@@ -258,11 +299,15 @@ class NotificationParser:
             if blacklisted_app.lower() in app_lower or app_lower in blacklisted_app.lower():
                 return True
         return False
+    
+    def get_pattern_loader(self):
+        """Get the pattern loader instance for external management."""
+        return self.pattern_loader
 
 
-def process_notification_data(df):
+def process_notification_data(df, patterns_file=os.path.join('dictionary', 'regex_patterns.json')):
     """Process notifications dataframe to extract structured transaction data."""
-    parser = NotificationParser()
+    parser = NotificationParser(patterns_file)
     results = []
     blacklisted_count = 0
     
@@ -288,7 +333,7 @@ def process_notification_data(df):
     return pd.DataFrame(results)
 
 
-def test_raw_csv_input(raw_input):
+def test_raw_csv_input(raw_input, patterns_file=os.path.join('dictionary', 'regex_patterns.json')):
     """Test notifications using raw CSV input without headers."""
     try:
         column_names = ['ID', 'PACKAGE NAME', 'APP LABEL', 'MESSAGE', 'DATE', 'CONTENTS', 'TIMESTAMP']
@@ -297,12 +342,243 @@ def test_raw_csv_input(raw_input):
             raw_input += '\n'
             
         df = pd.read_csv(io.StringIO(raw_input), names=column_names, header=None)
-        result_df = process_notification_data(df)
+        result_df = process_notification_data(df, patterns_file)
         
         return [row.to_dict() for _, row in result_df.iterrows()]
         
     except Exception as e:
         return [{"error": f"Failed to parse CSV: {str(e)}"}]
+
+
+class PatternManager:
+    """Manages regex patterns with a clean interface."""
+    
+    def __init__(self, patterns_file=os.path.join('dictionary', 'regex_patterns.json')):
+        self.pattern_loader = RegexPatternLoader(patterns_file)
+    
+    def run_interactive_pattern_manager(self):
+        """Interactive pattern management."""
+        print("\n" + "=" * 50)
+        print("REGEX PATTERN MANAGER")
+        print("Manage regex patterns for transaction parsing")
+        
+        while True:
+            choice = self._get_main_menu_choice()
+            
+            if choice == "1":
+                self._manage_amount_patterns()
+            elif choice == "2":
+                self._manage_account_patterns()
+            elif choice == "3":
+                self._view_all_patterns()
+            elif choice == "4":
+                self._test_patterns()
+            elif choice == "5":
+                print("\nReloading patterns from file...")
+                self.pattern_loader.reload_patterns()
+                print("Patterns reloaded successfully.")
+            elif choice == "6":
+                print("\nExiting pattern manager.")
+                break
+            else:
+                print("\nInvalid choice. Please try again.")
+    
+    def _get_main_menu_choice(self):
+        """Display main menu and get user choice."""
+        print("\n" + "=" * 50)
+        print("PATTERN MANAGER MENU")
+        print("1. Manage Amount Patterns")
+        print("2. Manage Account Patterns")
+        print("3. View All Patterns")
+        print("4. Test Patterns")
+        print("5. Reload Patterns from File")
+        print("6. Exit")
+        return input("\nEnter your choice [1-6]: ").strip()
+    
+    def _manage_amount_patterns(self):
+        """Manage amount extraction patterns."""
+        while True:
+            patterns = self.pattern_loader.get_amount_patterns()
+            choice = self._get_pattern_menu_choice("Amount", patterns)
+            
+            if choice == "1":
+                self._add_pattern("amount")
+            elif choice == "2":
+                if patterns:
+                    self._remove_pattern("amount", patterns)
+            elif choice == "3":
+                self._view_patterns("Amount", patterns)
+            elif choice == "4":
+                break
+            else:
+                print("\nInvalid choice. Please try again.")
+    
+    def _manage_account_patterns(self):
+        """Manage account extraction patterns."""
+        while True:
+            patterns = self.pattern_loader.get_account_patterns()
+            choice = self._get_pattern_menu_choice("Account", patterns)
+            
+            if choice == "1":
+                self._add_pattern("account")
+            elif choice == "2":
+                if patterns:
+                    self._remove_pattern("account", patterns)
+            elif choice == "3":
+                self._view_patterns("Account", patterns)
+            elif choice == "4":
+                break
+            else:
+                print("\nInvalid choice. Please try again.")
+    
+    def _get_pattern_menu_choice(self, pattern_type, patterns):
+        """Display pattern menu."""
+        print(f"\n{'=' * 50}")
+        print(f"MANAGE {pattern_type.upper()} PATTERNS")
+        print(f"\nCurrent {pattern_type.lower()} patterns: {len(patterns)}")
+        
+        print("\nOPTIONS:")
+        print("1. Add Pattern")
+        print("2. Remove Pattern")
+        print("3. View Patterns")
+        print("4. Back to Main Menu")
+        
+        return input("\nEnter your choice [1-4]: ").strip()
+    
+    def _add_pattern(self, pattern_type):
+        """Add a new pattern."""
+        pattern = input(f"\nEnter new {pattern_type} pattern (regex): ").strip()
+        
+        if not pattern:
+            print("Pattern cannot be empty.")
+            return
+        
+        # Test if the pattern is valid
+        try:
+            re.compile(pattern)
+        except re.error as e:
+            print(f"Invalid regex pattern: {e}")
+            return
+        
+        if pattern_type == "amount":
+            success = self.pattern_loader.add_amount_pattern(pattern)
+        else:  # account
+            success = self.pattern_loader.add_account_pattern(pattern)
+        
+        if success:
+            print(f"{pattern_type.capitalize()} pattern added successfully.")
+        else:
+            print(f"{pattern_type.capitalize()} pattern already exists.")
+    
+    def _remove_pattern(self, pattern_type, patterns):
+        """Remove a pattern."""
+        print(f"\n{pattern_type.capitalize()} patterns:")
+        for i, pattern in enumerate(patterns, 1):
+            print(f"{i}. {pattern}")
+        
+        try:
+            choice = input(f"\nSelect pattern to remove (1-{len(patterns)}) or Enter to cancel: ").strip()
+            if not choice:
+                return
+            
+            idx = int(choice) - 1
+            if 0 <= idx < len(patterns):
+                pattern = patterns[idx]
+                if pattern_type == "amount":
+                    success = self.pattern_loader.remove_amount_pattern(pattern)
+                else:  # account
+                    success = self.pattern_loader.remove_account_pattern(pattern)
+                
+                if success:
+                    print(f"{pattern_type.capitalize()} pattern removed successfully.")
+                else:
+                    print(f"Failed to remove {pattern_type} pattern.")
+            else:
+                print("Invalid pattern number.")
+        except ValueError:
+            print("Please enter a valid number.")
+    
+    def _view_patterns(self, pattern_type, patterns):
+        """View all patterns of a type."""
+        print(f"\n{pattern_type.upper()} PATTERNS ({len(patterns)} total):")
+        print("=" * 50)
+        for i, pattern in enumerate(patterns, 1):
+            print(f"{i}. {pattern}")
+        
+        input("\nPress Enter to continue...")
+    
+    def _view_all_patterns(self):
+        """View all patterns."""
+        print("\n" + "=" * 50)
+        print("ALL REGEX PATTERNS")
+        print("=" * 50)
+        
+        amount_patterns = self.pattern_loader.get_amount_patterns()
+        account_patterns = self.pattern_loader.get_account_patterns()
+        gopay_pattern = self.pattern_loader.get_special_pattern('gopay_coins')
+        
+        print(f"\nAMOUNT PATTERNS ({len(amount_patterns)} total):")
+        for i, pattern in enumerate(amount_patterns, 1):
+            print(f"  {i}. {pattern}")
+        
+        print(f"\nACCOUNT PATTERNS ({len(account_patterns)} total):")
+        for i, pattern in enumerate(account_patterns, 1):
+            print(f"  {i}. {pattern}")
+        
+        print(f"\nSPECIAL PATTERNS:")
+        print(f"  GoPay Coins: {gopay_pattern}")
+        
+        input("\nPress Enter to continue...")
+    
+    def _test_patterns(self):
+        """Test patterns against sample text."""
+        print("\n" + "=" * 50)
+        print("PATTERN TESTING")
+        print("=" * 50)
+        
+        test_text = input("\nEnter text to test patterns against: ").strip()
+        if not test_text:
+            return
+        
+        print(f"\nTesting text: '{test_text}'")
+        print("-" * 50)
+        
+        # Test amount patterns
+        amount_patterns = self.pattern_loader.get_amount_patterns()
+        print(f"\nAMOUNT PATTERN MATCHES:")
+        for i, pattern in enumerate(amount_patterns, 1):
+            try:
+                match = re.search(pattern, test_text, re.IGNORECASE)
+                if match:
+                    print(f"  Pattern {i}: MATCH - '{match.group(1)}'")
+                else:
+                    print(f"  Pattern {i}: No match")
+            except re.error as e:
+                print(f"  Pattern {i}: ERROR - {e}")
+        
+        # Test account patterns
+        account_patterns = self.pattern_loader.get_account_patterns()
+        print(f"\nACCOUNT PATTERN MATCHES:")
+        for i, pattern in enumerate(account_patterns, 1):
+            try:
+                match = re.search(pattern, test_text, re.IGNORECASE)
+                if match:
+                    print(f"  Pattern {i}: MATCH - '{match.group(1)}'")
+                else:
+                    print(f"  Pattern {i}: No match")
+            except re.error as e:
+                print(f"  Pattern {i}: ERROR - {e}")
+        
+        # Test special patterns
+        gopay_pattern = self.pattern_loader.get_special_pattern('gopay_coins')
+        if gopay_pattern:
+            try:
+                match = re.search(gopay_pattern, test_text, re.IGNORECASE)
+                print(f"\nGOPAY COINS PATTERN: {'MATCH' if match else 'No match'}")
+            except re.error as e:
+                print(f"\nGOPAY COINS PATTERN: ERROR - {e}")
+        
+        input("\nPress Enter to continue...")
 
 
 class DictionaryManager:
@@ -315,9 +591,8 @@ class DictionaryManager:
     def run_interactive_updater(self):
         """Main interactive dictionary updater."""
         print("\n" + "=" * 50)
-        print("DICTIONARY UPDATER")
+        print("DICTIONARY MANAGER")
         print("Update transaction categorization dictionaries or apply personas")
-        print(f"Available features: Dictionary Updates, Persona Selection")
         
         # Show current statistics
         stats = self.updater.get_dictionary_stats()
@@ -788,6 +1063,12 @@ def update_dictionaries_interactively():
     """Interactive function to update categorization dictionaries."""
     manager = DictionaryManager()
     manager.run_interactive_updater()
+    
+def manage_regex_patterns_interactively(patterns_file=os.path.join('dictionary', 'regex_patterns.json')):
+    """Standalone function to manage regex patterns interactively."""
+    pattern_manager = PatternManager(patterns_file)
+    pattern_manager.run_interactive_pattern_manager()
+    
 
 class BlacklistError(Exception):
     """Exception raised when processing blacklisted apps."""

@@ -161,7 +161,6 @@
     ]
   },
   "blacklist": [
-    "Grab",
-    "StayFree"
+    "Grab"
   ]
 }
