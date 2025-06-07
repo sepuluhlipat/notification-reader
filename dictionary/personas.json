@@ -1,106 +1,4 @@
 {
-  "general": {
-    "food": [
-      "food",
-      "meal",
-      "restaurant",
-      "order",
-      "menu",
-      "eat",
-      "lunch",
-      "dinner",
-      "breakfast",
-      "gofood",
-      "groceries",
-      "dining"
-    ],
-    "transport": [
-      "ride",
-      "trip",
-      "gocar",
-      "grab",
-      "transport",
-      "travel",
-      "driver",
-      "gojek ride",
-      "blue bird",
-      "taxi",
-      "fuel",
-      "bus",
-      "transit"
-    ],
-    "shopping": [
-      "purchase",
-      "buy",
-      "shopping",
-      "shop",
-      "amazon",
-      "store",
-      "item",
-      "product",
-      "tokopedia",
-      "shopee",
-      "lazada"
-    ],
-    "entertainment": [
-      "movie",
-      "ticket",
-      "entertainment",
-      "game",
-      "music",
-      "streaming",
-      "netflix",
-      "spotify"
-    ],
-    "bills": [
-      "bill",
-      "utility",
-      "electricity",
-      "water",
-      "internet",
-      "phone",
-      "subscription"
-    ],
-    "transfer": [
-      "transfer",
-      "send money",
-      "receive money"
-    ],
-    "finance": [
-      "gopay",
-      "payment",
-      "wallet",
-      "jenius",
-      "bank",
-      "credit",
-      "debit",
-      "card",
-      "saving",
-      "investment",
-      "insurance"
-    ],
-    "education": [
-      "course",
-      "class",
-      "learning",
-      "tuition",
-      "school",
-      "university",
-      "books",
-      "textbooks",
-      "specialization"
-    ],
-    "health": [
-      "medicine",
-      "doctor",
-      "hospital",
-      "health",
-      "medical",
-      "pharmacy",
-      "prescription",
-      "gym"
-    ]
-  },
   "student": {
     "education": [
       "tuition",
@@ -113,7 +11,17 @@
       "college",
       "books",
       "study",
-      "library"
+      "library",
+      "lab fee",
+      "exam fee",
+      "registration fee",
+      "semester fee",
+      "sekolah",
+      "kuliah",
+      "universitas",
+      "buku",
+      "kursus",
+      "les"
     ],
     "housing": [
       "rent",
@@ -123,7 +31,14 @@
       "accommodation",
       "electricity",
       "water",
-      "dormitory"
+      "dormitory",
+      "kost",
+      "boarding house",
+      "shared apartment",
+      "sewa",
+      "apartemen",
+      "listrik",
+      "air"
     ],
     "food": [
       "meal plan",
@@ -133,7 +48,13 @@
       "canteen",
       "fast food",
       "restaurant",
-      "gofood"
+      "gofood",
+      "grabfood",
+      "warung",
+      "food court",
+      "makanan",
+      "makan",
+      "jajan"
     ],
     "transport": [
       "bus pass",
@@ -144,7 +65,13 @@
       "train",
       "grab",
       "gocar",
-      "commute"
+      "commute",
+      "ojek",
+      "angkot",
+      "student transport",
+      "transportasi",
+      "bensin",
+      "taksi"
     ],
     "personal": [
       "hygiene",
@@ -153,7 +80,9 @@
       "apparel",
       "toiletries",
       "personal care",
-      "haircut"
+      "haircut",
+      "stationery",
+      "school supplies"
     ],
     "income": [
       "scholarship",
@@ -163,7 +92,11 @@
       "grant",
       "stipend",
       "award",
-      "fellowship"
+      "fellowship",
+      "beasiswa",
+      "freelance",
+      "tutoring",
+      "gaji"
     ],
     "savings": [
       "emergency fund",
@@ -171,16 +104,21 @@
       "credit card",
       "debt",
       "savings",
-      "bank"
+      "bank",
+      "tabungan",
+      "deposito",
+      "pinjaman"
     ],
     "fitness": [
       "gym membership",
-      "suppliments",
+      "supplements",
       "gear",
-      "personal trainer"
+      "personal trainer",
+      "sports equipment",
+      "fitness class"
     ]
   },
-  "young professional": {
+  "young_professional": {
     "housing": [
       "rent",
       "mortgage",
@@ -191,7 +129,15 @@
       "apartment",
       "condo",
       "electricity",
-      "water"
+      "water",
+      "kpr",
+      "property tax",
+      "maintenance",
+      "sewa",
+      "apartemen",
+      "listrik",
+      "air",
+      "pbb"
     ],
     "food": [
       "groceries",
@@ -202,7 +148,11 @@
       "dining",
       "meal",
       "gofood",
-      "grabfood"
+      "grabfood",
+      "catering",
+      "makanan",
+      "makan",
+      "kopi"
     ],
     "transport": [
       "car payment",
@@ -213,7 +163,13 @@
       "uber",
       "gocar",
       "taxi",
-      "maintenance"
+      "maintenance",
+      "insurance",
+      "parking",
+      "toll",
+      "bensin",
+      "parkir",
+      "tol"
     ],
     "career": [
       "development",
@@ -223,7 +179,10 @@
       "conference",
       "seminar",
       "books",
-      "courses"
+      "courses",
+      "professional membership",
+      "training",
+      "workshop"
     ],
     "health": [
       "insurance",
@@ -233,7 +192,12 @@
       "healthcare",
       "medicine",
       "fitness",
-      "therapy"
+      "therapy",
+      "bpjs",
+      "health check",
+      "kesehatan",
+      "dokter",
+      "obat"
     ],
     "lifestyle": [
       "entertainment",
@@ -244,7 +208,8 @@
       "concert",
       "shopping",
       "subscription",
-      "streaming"
+      "streaming",
+      "social activities"
     ],
     "financial": [
       "investments",
@@ -255,7 +220,12 @@
       "fund",
       "retirement",
       "loan",
-      "credit card"
+      "credit card",
+      "mutual fund",
+      "reksadana",
+      "investasi",
+      "tabungan",
+      "pajak"
     ]
   },
   "household": {
@@ -266,7 +236,11 @@
       "property tax",
       "repairs",
       "renovation",
-      "home improvement"
+      "home improvement",
+      "kpr",
+      "pbb",
+      "sewa",
+      "rumah"
     ],
     "utilities": [
       "electricity",
@@ -276,7 +250,12 @@
       "phone",
       "cable",
       "garbage",
-      "bill"
+      "bill",
+      "pln",
+      "pdam",
+      "indihome",
+      "listrik",
+      "air"
     ],
     "food": [
       "groceries",
@@ -285,7 +264,11 @@
       "restaurant",
       "gofood",
       "meal",
-      "takeout"
+      "takeout",
+      "family meals",
+      "groceries delivery",
+      "makanan",
+      "belanja makanan"
     ],
     "family": [
       "childcare",
@@ -294,7 +277,11 @@
       "clothing",
       "toys",
       "school supplies",
-      "children"
+      "children",
+      "daycare",
+      "babysitter",
+      "kids activities",
+      "sekolah"
     ],
     "transport": [
       "car payments",
@@ -303,7 +290,9 @@
       "maintenance",
       "repair",
       "transit",
-      "service"
+      "service",
+      "family transport",
+      "bensin"
     ],
     "health": [
       "insurance",
@@ -312,7 +301,12 @@
       "doctor",
       "dentist",
       "medicine",
-      "healthcare"
+      "healthcare",
+      "family health",
+      "bpjs",
+      "kesehatan",
+      "rumah sakit",
+      "obat"
     ],
     "financial": [
       "debt payments",
@@ -321,7 +315,10 @@
       "retirement",
       "savings",
       "investment",
-      "loan"
+      "loan",
+      "family insurance",
+      "tabungan",
+      "pinjaman"
     ]
   },
   "retiree": {
@@ -332,7 +329,11 @@
       "maintenance",
       "retirement community",
       "assisted living",
-      "home"
+      "home",
+      "pbb",
+      "senior housing",
+      "sewa",
+      "rumah"
     ],
     "healthcare": [
       "medicare",
@@ -341,15 +342,22 @@
       "specialists",
       "hospital",
       "medicine",
-      "insurance"
+      "insurance",
+      "bpjs",
+      "health supplements",
+      "kesehatan",
+      "dokter",
+      "rumah sakit",
+      "obat"
     ],
-    "daily living": [
+    "daily_living": [
       "groceries",
       "household supplies",
       "personal care",
       "home help",
       "cleaning",
-      "maintenance"
+      "maintenance",
+      "domestic help"
     ],
     "leisure": [
       "travel",
@@ -358,7 +366,8 @@
       "entertainment",
       "recreation",
       "clubs",
-      "activities"
+      "activities",
+      "social activities"
     ],
     "transport": [
       "car expenses",
@@ -367,7 +376,9 @@
       "fuel",
       "maintenance",
       "taxi",
-      "transit"
+      "transit",
+      "driver service",
+      "bensin"
     ],
     "income": [
       "social security",
@@ -375,7 +386,9 @@
       "retirement accounts",
       "investments",
       "dividends",
-      "interest"
+      "interest",
+      "pensiun",
+      "rental income"
     ],
     "financial": [
       "estate planning",
@@ -384,10 +397,12 @@
       "gifts",
       "donations",
       "legacy",
-      "wealth management"
+      "wealth management",
+      "inheritance planning",
+      "pajak"
     ]
   },
-  "small business": {
+  "small_business": {
     "operations": [
       "rent",
       "utilities",
@@ -396,7 +411,10 @@
       "supplies",
       "office",
       "workspace",
-      "inventory"
+      "inventory",
+      "operational costs",
+      "maintenance",
+      "sewa"
     ],
     "staff": [
       "salaries",
@@ -406,7 +424,10 @@
       "payroll",
       "compensation",
       "bonuses",
-      "hr"
+      "hr",
+      "employee insurance",
+      "bpjs ketenagakerjaan",
+      "gaji"
     ],
     "marketing": [
       "advertising",
@@ -415,7 +436,9 @@
       "branding",
       "social media",
       "promotions",
-      "seo"
+      "seo",
+      "digital marketing",
+      "print materials"
     ],
     "inventory": [
       "product purchases",
@@ -424,7 +447,8 @@
       "manufacturing",
       "stock",
       "supplies",
-      "wholesale"
+      "wholesale",
+      "raw materials"
     ],
     "professional": [
       "accounting",
@@ -433,7 +457,9 @@
       "consulting",
       "advisor",
       "bookkeeping",
-      "licenses"
+      "licenses",
+      "permits",
+      "notaris"
     ],
     "taxes": [
       "income tax",
@@ -442,7 +468,10 @@
       "property insurance",
       "business tax",
       "vat",
-      "gst"
+      "ppn",
+      "pph",
+      "pajak usaha",
+      "pajak"
     ],
     "revenue": [
       "sales",
@@ -450,7 +479,20 @@
       "contracts",
       "subscriptions",
       "client payments",
-      "revenue"
+      "revenue",
+      "commission",
+      "royalties"
+    ],
+    "payment_processing": [
+      "midtrans",
+      "xendit",
+      "doku",
+      "oy indonesia",
+      "payment gateway",
+      "pos system",
+      "moka",
+      "ireap pos",
+      "gobiz"
     ]
   }
 }
