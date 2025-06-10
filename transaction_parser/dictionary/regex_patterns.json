@@ -1,0 +1,16 @@
+{
+  "amount_patterns": [
+    "(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)",
+    "(\\d+(?:[.,]\\d+)*)\\s*(?:rupiah|rupi)",
+    "(?:received|sent|paid|payment|transfer|top.up|topup|refund|cashback)\\s+(?:of\\s+)?(?:Rp|IDR)?\\s*(\\d+(?:[.,]\\d+)*)",
+    "(\\d+)\\s+(?:GoPay Coins|Coins)"
+  ],
+  "account_patterns": [
+    "account\\s+(?:number|#)?\\s*[:\\.]?\\s*(\\d+)",
+    "card\\s+(?:number|#)?\\s*[:\\.]?\\s*[*xX]+(\\d{4})",
+    "(?:account|card)\\s+ending\\s+(?:in|with)\\s+(\\d{4})"
+  ],
+  "special_patterns": {
+    "gopay_coins": "\\d+\\s+(?:GoPay Coins|Coins)"
+  }
+}
