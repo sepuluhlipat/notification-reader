@@ -11,5 +11,3 @@ backups/
 __pycache__/
 __marimo__/
 *.pyc
-
-kafka_*.py
