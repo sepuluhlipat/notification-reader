@@ -6,6 +6,7 @@
 *.txt
 *.xlsx
 
+logs/
 venv/
 backups/
 __pycache__/
