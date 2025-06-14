@@ -211,9 +211,9 @@ class KafkaNotificationProcessor:
 def main():
     config = {
         'bootstrap_servers': ['18.136.193.239:9092'],  # Updated to remote Kafka broker
-        'input_topic': 'raw-notifications',
-        'output_topic': 'processed-notifications',
-        'consumer_group': 'notification-processor',
+        'input_topic': 'notification_parser_task',
+        'output_topic': 'notification_parser_result',
+        'consumer_group': 'notification_processor_v1',
         'dictionary_file': 'dictionary.json',
         'patterns_file': 'regex_patterns.json',
         'batch_interval': 10

@@ -4,7 +4,7 @@ from kafka import KafkaProducer
 from datetime import datetime
 
 class NotificationProducer:
-    def __init__(self, bootstrap_servers=['18.136.193.239:9092'], topic='raw-notifications'):  # Updated to remote Kafka broker
+    def __init__(self, bootstrap_servers=['18.136.193.239:9092'], topic='notification_parser_task'):  # Updated to remote Kafka broker
         self.topic = topic
         self.producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers,
