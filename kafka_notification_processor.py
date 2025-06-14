@@ -57,7 +57,7 @@ class KafkaNotificationProcessor:
                 enable_auto_commit=True,
                 consumer_timeout_ms=1000,
                 api_version=(0, 10, 1),
-                request_timeout_ms=20000,  # Individual request timeout
+                request_timeout_ms=40000,  # Individual request timeout
                 session_timeout_ms=30000,  # Session timeout (should be > request_timeout_ms)
                 heartbeat_interval_ms=10000,  # Should be < session_timeout_ms/3
                 max_poll_interval_ms=300000  # Added for stability
@@ -69,7 +69,7 @@ class KafkaNotificationProcessor:
                 acks='all',
                 retries=3,
                 api_version=(0, 10, 1),
-                request_timeout_ms=20000,  # Individual request timeout
+                request_timeout_ms=40000,  # Individual request timeout
                 batch_size=16384,
                 linger_ms=10
             )

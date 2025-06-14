@@ -10,7 +10,9 @@ class NotificationProducer:
             bootstrap_servers=bootstrap_servers,
             value_serializer=lambda x: json.dumps(x).encode('utf-8'),
             api_version=(0, 10, 1),
-            request_timeout_ms=20000,  # Individual request timeout
+            request_timeout_ms=60000,
+            metadata_max_age_ms=300000,
+            max_block_ms=60000,
             batch_size=16384,
             linger_ms=10,
             acks='all',
