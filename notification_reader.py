@@ -274,11 +274,11 @@ def process_notification_data(df, dictionary_file, patterns_file):
     
     for _, row in df.iterrows():
         try:
-            message = str(row.get('MESSAGE', '')) if pd.notna(row.get('MESSAGE')) else ""
-            contents = str(row.get('CONTENTS', '')) if pd.notna(row.get('CONTENTS')) else ""
-            id_val = str(row.get('ID', 'unknown_id')) if pd.notna(row.get('ID')) else "unknown_id"
-            timestamp = row.get('TIMESTAMP') if pd.notna(row.get('TIMESTAMP')) else None
-            app_name = str(row.get('APP LABEL', '')) if pd.notna(row.get('APP LABEL')) else ""
+            message = str(row.get('message', '')) if pd.notna(row.get('message')) else ""
+            contents = str(row.get('contents', '')) if pd.notna(row.get('contents')) else ""
+            id_val = str(row.get('user_id', 'unknown_id')) if pd.notna(row.get('user_id')) else "unknown_id"
+            timestamp = row.get('timestamp') if pd.notna(row.get('timestamp')) else None
+            app_name = str(row.get('app_label', '')) if pd.notna(row.get('app_label')) else ""
             
             transaction = parser.parse_notification(message, contents, id_val, timestamp, app_name)
             results.append(transaction.to_dict())
@@ -292,20 +292,3 @@ def process_notification_data(df, dictionary_file, patterns_file):
         
     print(f"Processed {len(results)} transactions, skipped {blacklisted_count} blacklisted apps")
     return pd.DataFrame(results)
-
-
-def test_raw_csv_input(raw_input, dictionary_file, patterns_file):
-    """Test notifications using raw CSV input without headers."""
-    try:
-        column_names = ['ID', 'PACKAGE NAME', 'APP LABEL', 'MESSAGE', 'DATE', 'CONTENTS', 'TIMESTAMP']
-        
-        if '\n' not in raw_input:
-            raw_input += '\n'
-            
-        df = pd.read_csv(io.StringIO(raw_input), names=column_names, header=None)
-        result_df = process_notification_data(df, dictionary_file, patterns_file)
-        
-        return [row.to_dict() for _, row in result_df.iterrows()]
-        
-    except Exception as e:
-        return [{"error": f"Failed to parse CSV: {str(e)}"}]
