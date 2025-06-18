@@ -90,13 +90,13 @@ class KafkaNotificationProcessor:
         try:
             # Convert to DataFrame
             batch_data = {
-                'ID': [msg.get('ID', '') for msg in self.message_batch],
-                'PACKAGE NAME': [msg.get('PACKAGE_NAME', '') for msg in self.message_batch],
-                'APP LABEL': [msg.get('APP_LABEL', '') for msg in self.message_batch],
-                'MESSAGE': [msg.get('MESSAGE', '') for msg in self.message_batch],
-                'DATE': [msg.get('DATE', '') for msg in self.message_batch],
-                'CONTENTS': [msg.get('CONTENTS', '') for msg in self.message_batch],
-                'TIMESTAMP': [msg.get('TIMESTAMP', '') for msg in self.message_batch]
+                'user_id': [msg.get('user_id', '') for msg in self.message_batch],
+                'package_name': [msg.get('package_name', '') for msg in self.message_batch],
+                'app_label': [msg.get('app_label', '') for msg in self.message_batch],
+                'message': [msg.get('message', '') for msg in self.message_batch],
+                'date': [msg.get('date', '') for msg in self.message_batch],
+                'contents': [msg.get('contents', '') for msg in self.message_batch],
+                'timestamp': [msg.get('timestamp', '') for msg in self.message_batch]
             }
             
             df_batch = pd.DataFrame(batch_data)
