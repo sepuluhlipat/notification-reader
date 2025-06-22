@@ -8,7 +8,7 @@ import pandas as pd
 from notification_reader import process_notification_data
 
 # Setup logging
-logs_dir = 'logs'
+logs_dir = '/var/log/notification-parser'
 os.makedirs(logs_dir, exist_ok=True)
 
 log_filename = os.path.join(logs_dir, f'kafka_processor_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
@@ -210,7 +210,7 @@ class KafkaNotificationProcessor:
 
 def main():
     config = {
-        'bootstrap_servers': ['18.136.193.239:9092'],  # Updated to remote Kafka broker
+        'bootstrap_servers': ['172.31.31.83:9092'],  # Updated to remote Kafka broker
         'input_topic': 'notification_parser_task',
         'output_topic': 'notification_parser_result',
         'consumer_group': 'notification_processor_v1',
