@@ -56,7 +56,6 @@ class KafkaNotificationProcessor:
                 auto_offset_reset='latest',
                 enable_auto_commit=True,
                 consumer_timeout_ms=1000,
-                api_version=(0, 10, 1),
                 request_timeout_ms=40000,  # Individual request timeout
                 session_timeout_ms=30000,  # Session timeout (should be > request_timeout_ms)
                 heartbeat_interval_ms=10000,  # Should be < session_timeout_ms/3
@@ -68,7 +67,6 @@ class KafkaNotificationProcessor:
                 value_serializer=lambda x: json.dumps(x, default=str).encode('utf-8'),
                 acks='all',
                 retries=3,
-                api_version=(0, 10, 1),
                 request_timeout_ms=40000,  # Individual request timeout
                 batch_size=16384,
                 linger_ms=10
