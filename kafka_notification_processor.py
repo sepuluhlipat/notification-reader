@@ -214,8 +214,8 @@ def main():
         'input_topic': 'notification_parser_task',
         'output_topic': 'notification_parser_result',
         'consumer_group': 'notification_processor_v1',
-        'dictionary_file': 'dictionary.json',
-        'patterns_file': 'regex_patterns.json',
+        'dictionary_file': './dictionary.json',
+        'patterns_file': './regex_patterns.json',
         'batch_interval': 10
     }
     
