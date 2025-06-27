@@ -5,41 +5,38 @@ import re
 import json
 import os
 from enum import Enum
-import io
 
 
 class TransactionType(Enum):
     INCOME = "income"
     EXPENSE = "expense"
     TRANSFER = "transfer"
-    TOP_UP = "top_up"
     UNKNOWN = "unknown"
 
 
 class Transaction:
-    def __init__(self, id=None, timestamp=None):
+    def __init__(self, id=None, timestamp=None, message_id=None):
         self.id = id
-        self.timestamp = timestamp or datetime.now().isoformat()
+        self.message_id = message_id
+        self.timestamp = timestamp or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.transaction_type = TransactionType.UNKNOWN
         self.amount = None
         self.account_number = None
         self.category = None
+        self.is_promotional = False
     
     def to_dict(self):
-        """Convert transaction to dictionary with proper category defaults."""
         default_categories = {
             TransactionType.INCOME: "other",
             TransactionType.EXPENSE: "other", 
-            TransactionType.TRANSFER: "general",
-            TransactionType.TOP_UP: "finance"
+            TransactionType.TRANSFER: "general"
         }
         
-        final_category = self.category
-        if not final_category and self.transaction_type != TransactionType.UNKNOWN:
-            final_category = default_categories.get(self.transaction_type)
+        final_category = self.category or default_categories.get(self.transaction_type, "other")
         
         return {
             "id": self.id,
+            "message_id": self.message_id,
             "timestamp": self.timestamp,
             "transaction_type": self.transaction_type.value,
             "amount": self.amount,
@@ -48,116 +45,61 @@ class Transaction:
         }
 
 
-class DictionaryLoader:
-    """Handles loading dictionaries from JSON file."""
+class ConfigLoader:
+    def __init__(self, dictionary_file, patterns_file):
+        self.dictionary_data = self._load_json(dictionary_file, "Dictionary")
+        self.patterns = self._load_json(patterns_file, "Regex patterns")
+        self._validate_patterns()
     
-    def __init__(self, dictionary_file):
-        self.dictionary_file = dictionary_file
-        self.dictionary_data = {}
-        self._load_dictionary()
-    
-    def _load_dictionary(self):
-        """Load dictionary from JSON file."""
-        if not os.path.exists(self.dictionary_file):
-            raise FileNotFoundError(f"Dictionary file not found: {self.dictionary_file}")
+    def _load_json(self, file_path, file_type):
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"{file_type} file not found: {file_path}")
         
         try:
-            with open(self.dictionary_file, 'r', encoding='utf-8') as f:
-                self.dictionary_data = json.load(f)
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
         except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON in dictionary file {self.dictionary_file}: {e}")
+            raise ValueError(f"Invalid JSON in {file_type.lower()} file {file_path}: {e}")
         except IOError as e:
-            raise IOError(f"Could not read dictionary file {self.dictionary_file}: {e}")
+            raise IOError(f"Could not read {file_type.lower()} file {file_path}: {e}")
     
-    def get_categories(self):
-        """Get categories dictionary."""
-        if 'categories' not in self.dictionary_data:
-            raise KeyError("'categories' not found in dictionary file")
-        return self.dictionary_data['categories']
-    
-    def get_merchants(self):
-        """Get merchants dictionary."""
-        if 'merchants' not in self.dictionary_data:
-            raise KeyError("'merchants' not found in dictionary file")
-        return self.dictionary_data['merchants']
-    
-    def get_transaction_types(self):
-        """Get transaction types dictionary."""
-        if 'transaction_types' not in self.dictionary_data:
-            raise KeyError("'transaction_types' not found in dictionary file")
-        return self.dictionary_data['transaction_types']
-    
-    def get_blacklist(self):
-        """Get blacklist from dictionary."""
-        if 'blacklist' not in self.dictionary_data:
-            raise KeyError("'blacklist' not found in dictionary file")
-        return self.dictionary_data['blacklist']
-
-
-class RegexPatternLoader:
-    """Handles loading and managing regex patterns from JSON file."""
-    
-    def __init__(self, patterns_file):
-        self.patterns_file = patterns_file
-        self.patterns = {}
-        self._load_patterns()
-    
-    def _load_patterns(self):
-        """Load regex patterns from JSON file."""
-        if not os.path.exists(self.patterns_file):
-            raise FileNotFoundError(f"Regex patterns file not found: {self.patterns_file}")
-        
-        try:
-            with open(self.patterns_file, 'r', encoding='utf-8') as f:
-                self.patterns = json.load(f)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON in regex patterns file {self.patterns_file}: {e}")
-        except IOError as e:
-            raise IOError(f"Could not read regex patterns file {self.patterns_file}: {e}")
-        
-        # Validate required pattern structure
-        required_keys = ['amount_patterns', 'account_patterns', 'special_patterns']
+    def _validate_patterns(self):
+        required_keys = ['amount_patterns', 'account_patterns']
         for key in required_keys:
             if key not in self.patterns:
                 raise KeyError(f"Required key '{key}' not found in regex patterns file")
     
-    def get_amount_patterns(self):
-        """Get amount extraction patterns."""
-        return self.patterns.get('amount_patterns', [])
+    def get_dict_data(self, key):
+        if key not in self.dictionary_data:
+            raise KeyError(f"'{key}' not found in dictionary file")
+        return self.dictionary_data[key]
     
-    def get_account_patterns(self):
-        """Get account number extraction patterns."""
-        return self.patterns.get('account_patterns', [])
-    
-    def get_special_pattern(self, pattern_name):
-        """Get a specific special pattern."""
-        return self.patterns.get('special_patterns', {}).get(pattern_name, '')
+    def get_pattern_data(self, key, subkey=None):
+        data = self.patterns.get(key, {})
+        return data.get(subkey, []) if subkey else data
 
 
 class NotificationParser:
     def __init__(self, dictionary_file, patterns_file):
-        """Initialize parser with dictionary and regex patterns from files."""
-        self.dictionary_loader = DictionaryLoader(dictionary_file)
-        self.pattern_loader = RegexPatternLoader(patterns_file)
-        self._load_dictionaries()
-        self._compile_patterns()
+        self.config = ConfigLoader(dictionary_file, patterns_file)
+        self._load_config()
     
-    def _load_dictionaries(self):
-        """Load all required dictionaries."""
-        self.categories = self.dictionary_loader.get_categories()
-        self.merchants = self.dictionary_loader.get_merchants()
-        self.transaction_types = self.dictionary_loader.get_transaction_types()
-        self.blacklisted_apps = self.dictionary_loader.get_blacklist()
-    
-    def _compile_patterns(self):
-        """Load regex patterns from the pattern loader."""
-        self.amount_patterns = self.pattern_loader.get_amount_patterns()
-        self.account_patterns = self.pattern_loader.get_account_patterns()
-        self.gopay_coins_pattern = self.pattern_loader.get_special_pattern('gopay_coins')
+    def _load_config(self):
+        self.categories = self.config.get_dict_data('categories')
+        self.merchants = self.config.get_dict_data('merchants')
+        self.transaction_types = self.config.get_dict_data('transaction_types')
+        self.blacklisted_apps = self.config.get_dict_data('blacklist')
+        
+        self.amount_patterns = self.config.get_pattern_data('amount_patterns')
+        self.account_patterns = self.config.get_pattern_data('account_patterns')
+        
+        # Load promotional and confirmation patterns from config
+        self.promotional_keywords = self.config.get_pattern_data('promotional_patterns', 'keywords')
+        self.promotional_regex_patterns = self.config.get_pattern_data('promotional_patterns', 'regex_patterns')
+        self.confirmation_keywords = self.config.get_pattern_data('confirmation_patterns', 'keywords')
     
     def _extract_with_patterns(self, text, patterns):
-        """Generic pattern extraction helper."""
-        if not isinstance(text, str):
+        if not isinstance(text, str) or not patterns:
             return None
             
         for pattern in patterns:
@@ -167,128 +109,150 @@ class NotificationParser:
                     return match.group(1)
             except re.error as e:
                 print(f"Warning: Invalid regex pattern '{pattern}': {e}")
-                continue
         return None
     
     def _clean_amount(self, amount_str):
-        """Clean and convert amount string to float."""
         if not amount_str:
             return None
         try:
-            cleaned = amount_str.replace(',', '')
-            return float(cleaned)
+            return float(amount_str.replace(',', ''))
         except (ValueError, AttributeError):
             return None
     
+    def _is_promotional_message(self, text):
+        if not isinstance(text, str):
+            return False
+            
+        text_lower = text.lower()
+        
+        # Check promotional regex patterns first
+        if self.promotional_regex_patterns:
+            for pattern in self.promotional_regex_patterns:
+                try:
+                    if re.search(pattern, text_lower, re.IGNORECASE):
+                        return True
+                except re.error as e:
+                    print(f"Warning: Invalid promotional regex pattern '{pattern}': {e}")
+        
+        # Count promotional vs confirmation keywords from config
+        promotional_score = sum(1 for keyword in self.promotional_keywords if keyword in text_lower)
+        confirmation_score = sum(1 for keyword in self.confirmation_keywords if keyword in text_lower)
+        
+        return promotional_score > confirmation_score and promotional_score > 0
+    
     def extract_amount(self, text):
-        """Extract monetary amounts from text."""
         amount_str = self._extract_with_patterns(text, self.amount_patterns)
         return self._clean_amount(amount_str)
     
     def extract_account_number(self, text):
-        """Extract account numbers from text."""
         return self._extract_with_patterns(text, self.account_patterns)
     
     def extract_transaction_type(self, text):
-        """Determine transaction type based on text content."""
         if not isinstance(text, str):
             return TransactionType.UNKNOWN
             
         text_lower = text.lower()
-        
-        # Map transaction type strings to enums
         type_mapping = {
             'income': TransactionType.INCOME,
             'expense': TransactionType.EXPENSE,
-            'transfer': TransactionType.TRANSFER,
-            'top_up': TransactionType.TOP_UP
+            'transfer': TransactionType.TRANSFER
         }
         
         for trans_type, keywords in self.transaction_types.items():
-            if any(keyword in text_lower for keyword in keywords):
-                return type_mapping.get(trans_type, TransactionType.UNKNOWN)
+            if trans_type in type_mapping and any(keyword in text_lower for keyword in keywords):
+                return type_mapping[trans_type]
         
         return TransactionType.UNKNOWN
     
     def extract_category(self, text):
-        """Categorize transactions based on content."""
         if not isinstance(text, str):
             return "other"
             
         text_lower = text.lower()
         
-        # First check merchants for more specific categorization
+        # Check merchants first
         for category, merchants in self.merchants.items():
             if any(merchant in text_lower for merchant in merchants):
                 return category
         
-        # Then check general categories
+        # Check general categories
         for category, keywords in self.categories.items():
             if any(keyword in text_lower for keyword in keywords):
                 return category
         
         return "other"
     
-    def parse_notification(self, message, contents, id=None, timestamp=None, app_name=None):
-        """Parse notification and extract transaction details."""
+    def _is_app_blacklisted(self, app_identifier):
+        if not app_identifier:
+            return False
+            
+        app_lower = app_identifier.lower().strip()
+        return any(blacklisted_app.lower() in app_lower or app_lower in blacklisted_app.lower() 
+                  for blacklisted_app in self.blacklisted_apps)
+    
+    def parse_notification(self, message, contents, id=None, timestamp=None, app_name=None, message_id=None):
         if app_name and self._is_app_blacklisted(app_name):
             raise BlacklistError(app_name)
         
-        transaction = Transaction(id, timestamp)
+        transaction = Transaction(id, timestamp, message_id)
         full_text = f"{message} {contents}"
         
-        transaction.transaction_type = self.extract_transaction_type(full_text)
-        transaction.amount = self.extract_amount(full_text)
+        # Check if promotional first - this takes precedence
+        transaction.is_promotional = self._is_promotional_message(full_text)
+        
+        if transaction.is_promotional:
+            transaction.transaction_type = TransactionType.UNKNOWN
+            transaction.amount = None
+        else:
+            transaction.transaction_type = self.extract_transaction_type(full_text)
+            transaction.amount = self.extract_amount(full_text)
+        
         transaction.account_number = self.extract_account_number(full_text)
         transaction.category = self.extract_category(full_text)
         
-        # Handle special case for GoPay Coins using pattern from file
-        if self.gopay_coins_pattern and re.search(self.gopay_coins_pattern, full_text):
-            transaction.transaction_type = TransactionType.INCOME
-            transaction.category = "cashback"
-        
         return transaction
-    
-    def _is_app_blacklisted(self, app_identifier):
-        """Check if an app is blacklisted."""
-        app_lower = app_identifier.lower().strip()
-
-        for blacklisted_app in self.blacklisted_apps:
-            if blacklisted_app.lower() in app_lower or app_lower in blacklisted_app.lower():
-                return True
-        return False
 
 
 class BlacklistError(Exception):
-    """Exception raised when processing blacklisted apps."""
     def __init__(self, app_name):
         self.app_name = app_name
         super().__init__(f"App '{app_name}' is blacklisted and cannot be processed")
 
 
-def process_notification_data(df, dictionary_file, patterns_file):
-    """Process notifications dataframe to extract structured transaction data."""
+def process_notification_data(df, dictionary_file, patterns_file, filter_promotional=True):
     parser = NotificationParser(dictionary_file, patterns_file)
     results = []
     blacklisted_count = 0
+    promotional_count = 0
     
     for _, row in df.iterrows():
         try:
             message = str(row.get('message', '')) if pd.notna(row.get('message')) else ""
             contents = str(row.get('contents', '')) if pd.notna(row.get('contents')) else ""
-            id_val = str(row.get('user_id', 'unknown_id')) if pd.notna(row.get('user_id')) else "unknown_id"
-            timestamp = row.get('timestamp') if pd.notna(row.get('timestamp')) else None
+            user_id = str(row.get('user_id', 'unknown_id')) if pd.notna(row.get('user_id')) else "unknown_id"
+            message_id = str(row.get('id', 'unknown_msg_id')) if pd.notna(row.get('id')) else "unknown_msg_id"
+            timestamp = str(row.get('timestamp')) if pd.notna(row.get('timestamp')) else None
             app_name = str(row.get('app_label', '')) if pd.notna(row.get('app_label')) else ""
+                        
+            transaction = parser.parse_notification(message, contents, user_id, timestamp, app_name, message_id)
             
-            transaction = parser.parse_notification(message, contents, id_val, timestamp, app_name)
+            # Filter promotional messages and invalid amounts
+            if filter_promotional and transaction.is_promotional:
+                promotional_count += 1
+                continue
+                
+            if transaction.amount is None or transaction.amount <= 0:
+                continue
+                
             results.append(transaction.to_dict())
         
-        except BlacklistError as e:
+        except BlacklistError:
             blacklisted_count += 1
-            continue
         except Exception as e:
-            print(f"Error processing row: {e}")
-            continue
-        
-    print(f"Processed {len(results)} transactions, skipped {blacklisted_count} blacklisted apps")
+            print(f"Error processing row with message id {row.get('id', 'unknown')}: {e}")
+    
+    print(f"Processed {len(results)} transactions")
+    print(f"Skipped {blacklisted_count} blacklisted apps")
+    print(f"Filtered out {promotional_count} promotional messages")
+    
     return pd.DataFrame(results)
