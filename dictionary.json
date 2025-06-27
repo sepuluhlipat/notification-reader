@@ -101,27 +101,6 @@
       "barang pribadi",
       "peralatan rumah"
     ],
-    "income": [
-      "salary",
-      "wage",
-      "bonus",
-      "commission",
-      "freelance",
-      "business income",
-      "investment return",
-      "dividend",
-      "refund",
-      "cashback",
-      "allowance",
-      "grant",
-      "gaji",
-      "upah",
-      "freelance",
-      "penghasilan",
-      "dividen",
-      "tunjangan",
-      "komisi"
-    ],
     "savings": [
       "savings account",
       "investment",
@@ -228,10 +207,6 @@
       "seabank",
       "bank neo",
       "bank aladin",
-      "gopay",
-      "ovo",
-      "dana",
-      "shopeepay",
       "linkaja",
       "sakuku",
       "tcash",
@@ -268,7 +243,8 @@
       "lotte mart"
     ],
     "transport": [
-      "gojek",
+      "MRTJ",
+      "blue bird",
       "grab",
       "maxim",
       "transjakarta",

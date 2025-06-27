@@ -1,17 +1,87 @@
 {
   "amount_patterns": [
-    "(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)",
+    "(?:berhasil|sukses|completed|paid|bayar|sent|kirim|received|terima).*?(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)",
+    "(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*).*?(?:berhasil|sukses|completed|dibayar|diterima|terkirim)",
+    "(?:total|amount|jumlah).*?(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)",
     "(\\d+(?:[.,]\\d+)*)\\s*(?:rupiah|rupi)",
-    "(?:received|sent|paid|payment|transfer|top.up|topup|refund|cashback)\\s+(?:of\\s+)?(?:Rp|IDR)?\\s*(\\d+(?:[.,]\\d+)*)",
-    "(\\d+)\\s+(?:GoPay Coins|Coins)",
-    "(\\d+(?:[.,]\\d+)*)"
+    "(?:received|sent|paid|payment|transfer|top.up|topup|refund)\\s+(?:of\\s+)?(?:Rp|IDR)?\\s*(\\d+(?:[.,]\\d+)*)",
+    "(\\d+)\\s+(?:GoPay Coins|Coins)"
   ],
   "account_patterns": [
     "account\\s+(?:number|#)?\\s*[:\\.]?\\s*(\\d+)",
     "card\\s+(?:number|#)?\\s*[:\\.]?\\s*[*xX]+(\\d{4})",
-    "(?:account|card)\\s+ending\\s+(?:in|with)\\s+(\\d{4})"
+    "(?:account|card)\\s+ending\\s+(?:in|with)\\s+(\\d{4})",
+    "rekening\\s+(?:nomor|#)?\\s*[:\\.]?\\s*(\\d+)",
+    "kartu\\s+(?:nomor|#)?\\s*[:\\.]?\\s*[*xX]+(\\d{4})"
   ],
-   "special_patterns": {
-    "gopay_coins": "\\d+\\s+(?:GoPay Coins|Coins)"
+  "promotional_patterns": {
+    "keywords": [
+      "dapetin",
+      "dapatkan",
+      "diskon",
+      "discount", 
+      "promo",
+      "offer",
+      "penawaran",
+      "hemat",
+      "gratis",
+      "free",
+      "bonus",
+      "hadiah",
+      "gift",
+      "yuk",
+      "ayo",
+      "buruan",
+      "jangan sampai terlewat",
+      "limited time",
+      "kesempatan",
+      "opportunity",
+      "claim",
+      "klaim",
+      "redeem",
+      "tukar",
+      "checkout keranjang",
+      "belanja sekarang",
+      "shop now",
+      "beli sekarang",
+      "auto lebih hemat",
+      "lebih murah",
+      "cheaper",
+      "save money"
+    ],
+    "regex_patterns": [
+      "(?:you (?:got|just earned|have received)|yay.*earned).*gopay coins",
+      "ka-ching.*gopay coins",
+      "tap here.*details.*gopay coins",
+      "gopay coins.*(?:refund|cashback|bonus|reward)",
+      "(?:refund|cashback|bonus|reward).*gopay coins",
+      "\\d+\\s+gopay coins.*(?:refund|cashback|bonus|reward)",
+      "yuk.*(diskon|hemat)",
+      "checkout.*yuk",
+      "bayarnya.*auto.*hemat"
+    ]
+  },
+  "confirmation_patterns": {
+    "keywords": [
+      "berhasil",
+      "sukses",
+      "success",
+      "completed",
+      "selesai",
+      "confirmed",
+      "dikonfirmasi",
+      "transaction complete",
+      "pembayaran berhasil",
+      "payment successful",
+      "telah dibayar",
+      "has been paid",
+      "diterima",
+      "received",
+      "sent successfully",
+      "terkirim",
+      "processed",
+      "diproses",
+      "transaksi selesai"
+    ]
   }
 }
