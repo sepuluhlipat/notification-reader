@@ -5,7 +5,11 @@
     "(?:total|amount|jumlah).*?(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)",
     "(\\d+(?:[.,]\\d+)*)\\s*(?:rupiah|rupi)",
     "(?:received|sent|paid|payment|transfer|top.up|topup|refund)\\s+(?:of\\s+)?(?:Rp|IDR)?\\s*(\\d+(?:[.,]\\d+)*)",
-    "(\\d+)\\s+(?:GoPay Coins|Coins)"
+    "(\\d+)\\s+(?:GoPay Coins|Coins)",
+    "(?:pengeluaran|pemasukan|income|expense)\\s+sebesar\\s+(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)",
+    "sebesar\\s+(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)",
+    "(?:nilai|value|worth)\\s+(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)",
+    "(?:Rp|IDR)\\s*(\\d+(?:[.,]\\d+)*)\\s+(?:untuk|for|pada|di|at)"
   ],
   "account_patterns": [
     "account\\s+(?:number|#)?\\s*[:\\.]?\\s*(\\d+)",

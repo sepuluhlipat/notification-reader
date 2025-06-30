@@ -90,6 +90,12 @@ class NotificationParser:
         self.transaction_types = self.config.get_dict_data('transaction_types')
         self.blacklisted_apps = self.config.get_dict_data('blacklist')
         
+        # Load allowlist - if not present, default to empty list (process all apps)
+        try:
+            self.allowlisted_apps = self.config.get_dict_data('allowlist')
+        except KeyError:
+            self.allowlisted_apps = []
+        
         self.amount_patterns = self.config.get_pattern_data('amount_patterns')
         self.account_patterns = self.config.get_pattern_data('account_patterns')
         
@@ -190,7 +196,24 @@ class NotificationParser:
         return any(blacklisted_app.lower() in app_lower or app_lower in blacklisted_app.lower() 
                   for blacklisted_app in self.blacklisted_apps)
     
+    def _is_app_allowlisted(self, app_identifier):
+        # If allowlist is empty, allow all apps (backward compatibility)
+        if not self.allowlisted_apps:
+            return True
+            
+        if not app_identifier:
+            return False
+            
+        app_lower = app_identifier.lower().strip()
+        return any(allowlisted_app.lower() in app_lower or app_lower in allowlisted_app.lower() 
+                  for allowlisted_app in self.allowlisted_apps)
+    
     def parse_notification(self, message, contents, id=None, timestamp=None, app_name=None, message_id=None):
+        # Check allowlist first - if app is not allowlisted, raise AllowlistError
+        if not self._is_app_allowlisted(app_name):
+            raise AllowlistError(app_name)
+        
+        # Then check blacklist
         if app_name and self._is_app_blacklisted(app_name):
             raise BlacklistError(app_name)
         
@@ -219,10 +242,17 @@ class BlacklistError(Exception):
         super().__init__(f"App '{app_name}' is blacklisted and cannot be processed")
 
 
+class AllowlistError(Exception):
+    def __init__(self, app_name):
+        self.app_name = app_name
+        super().__init__(f"App '{app_name}' is not in allowlist and will be skipped")
+
+
 def process_notification_data(df, dictionary_file, patterns_file, filter_promotional=True):
     parser = NotificationParser(dictionary_file, patterns_file)
     results = []
     blacklisted_count = 0
+    not_allowlisted_count = 0
     promotional_count = 0
     
     for _, row in df.iterrows():
@@ -246,12 +276,15 @@ def process_notification_data(df, dictionary_file, patterns_file, filter_promoti
                 
             results.append(transaction.to_dict())
         
+        except AllowlistError:
+            not_allowlisted_count += 1
         except BlacklistError:
             blacklisted_count += 1
         except Exception as e:
             print(f"Error processing row with message id {row.get('id', 'unknown')}: {e}")
     
     print(f"Processed {len(results)} transactions")
+    print(f"Skipped {not_allowlisted_count} apps not in allowlist")
     print(f"Skipped {blacklisted_count} blacklisted apps")
     print(f"Filtered out {promotional_count} promotional messages")
     
