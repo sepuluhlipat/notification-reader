@@ -410,5 +410,31 @@
   },
   "blacklist": [
     "stayfree"
+  ],
+  "allowlist": [
+    "com.android.mms",
+    "sms",
+    "bca mobile",
+    "mandiri online",
+    "bni mobile banking",
+    "bri mobile",
+    "livin' by mandiri",
+    "blu by bca digital",
+    "jago",
+    "tmrw by uob",
+    "seabank",
+    "dana",
+    "gopay",
+    "ovo",
+    "shopeepay",
+    "linkaja",
+    "grab",
+    "gojek",
+    "tokopedia",
+    "shopee",
+    "bukalapak",
+    "lazada",
+    "blibli",
+    "bca mybca omni android"
   ]
 }
