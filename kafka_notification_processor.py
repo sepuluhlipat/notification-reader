@@ -8,7 +8,7 @@ import pandas as pd
 from notification_reader import process_notification_data
 
 # Setup logging
-logs_dir = 'logs'
+logs_dir = '/var/log/notification-parser'
 os.makedirs(logs_dir, exist_ok=True)
 
 log_filename = os.path.join(logs_dir, f'kafka_processor_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
