@@ -21,18 +21,16 @@ logger = logging.getLogger(__name__)
 
 class KafkaNotificationProcessor:
     def __init__(self, bootstrap_servers, input_topic, output_topic, consumer_group, 
-                 dictionary_file, patterns_file, batch_interval=10):
+                 dictionary_file, patterns_file):
         self.bootstrap_servers = bootstrap_servers
         self.input_topic = input_topic
         self.output_topic = output_topic
         self.consumer_group = consumer_group
         self.dictionary_file = dictionary_file
         self.patterns_file = patterns_file
-        self.batch_interval = batch_interval
         
         self.consumer = None
         self.producer = None
-        self.message_batch = []
         self.processed_count = 0
         self.is_running = False
         
@@ -57,10 +55,10 @@ class KafkaNotificationProcessor:
                 enable_auto_commit=True,
                 consumer_timeout_ms=1000,
                 api_version=(0, 10, 1),
-                request_timeout_ms=40000,  # Individual request timeout
-                session_timeout_ms=30000,  # Session timeout (should be > request_timeout_ms)
-                heartbeat_interval_ms=10000,  # Should be < session_timeout_ms/3
-                max_poll_interval_ms=300000  # Added for stability
+                request_timeout_ms=40000,
+                session_timeout_ms=30000,
+                heartbeat_interval_ms=10000,
+                max_poll_interval_ms=300000
             )
             
             self.producer = KafkaProducer(
@@ -69,7 +67,7 @@ class KafkaNotificationProcessor:
                 acks='all',
                 retries=3,
                 api_version=(0, 10, 1),
-                request_timeout_ms=40000,  # Individual request timeout
+                request_timeout_ms=40000,
                 batch_size=16384,
                 linger_ms=10
             )
@@ -80,64 +78,55 @@ class KafkaNotificationProcessor:
             logger.error(f"Kafka connection failed: {e}")
             raise
     
-    def _process_batch(self):
-        """Process batch of notifications"""
-        if not self.message_batch:
-            return
-        
-        batch_size = len(self.message_batch)
-        
+    def _process_message(self, message_data):
+        """Process a single notification message"""
         try:
-            # Convert to DataFrame
-            batch_data = {
-                'user_id': [msg.get('user_id', '') for msg in self.message_batch],
-                'package_name': [msg.get('package_name', '') for msg in self.message_batch],
-                'app_label': [msg.get('app_label', '') for msg in self.message_batch],
-                'message': [msg.get('message', '') for msg in self.message_batch],
-                'date': [msg.get('date', '') for msg in self.message_batch],
-                'contents': [msg.get('contents', '') for msg in self.message_batch],
-                'timestamp': [msg.get('timestamp', '') for msg in self.message_batch]
-            }
-            
-            df_batch = pd.DataFrame(batch_data)
+            # Convert to DataFrame format
+            df = pd.DataFrame([{
+                'user_id': message_data.get('user_id', ''),
+                'package_name': message_data.get('package_name', ''),
+                'app_label': message_data.get('app_label', ''),
+                'message': message_data.get('message', ''),
+                'date': message_data.get('date', ''),
+                'contents': message_data.get('contents', ''),
+                'timestamp': message_data.get('timestamp', '')
+            }])
             
             # Process with notification reader
-            result_df = process_notification_data(df_batch, self.dictionary_file, self.patterns_file)
+            result_df = process_notification_data(df, self.dictionary_file, self.patterns_file)
             
             # Send valid transactions
             sent_count = 0
             for _, row in result_df.iterrows():
                 if row.get('transaction_type', 'unknown') != 'unknown':
-                    try:
-                        future = self.producer.send(self.output_topic, row.to_dict())
-                        future.get(timeout=10)  # Increased timeout for remote connection
-                        sent_count += 1
-                    except Exception as e:
-                        logger.error(f"Failed to send transaction: {e}")
+                    future = self.producer.send(self.output_topic, row.to_dict())
+                    future.get(timeout=10)
+                    sent_count += 1
             
             self.processed_count += sent_count
-            logger.info(f"Batch: {batch_size} notifications → {sent_count} transactions sent")
+            return sent_count
             
         except Exception as e:
-            logger.error(f"Batch processing failed: {e}")
-            raise
-        finally:
-            self.message_batch.clear()
+            logger.error(f"Message processing failed: {e}")
+            return 0
     
-    def _collect_messages(self):
-        """Collect messages from Kafka"""
+    def _poll_and_process(self):
+        """Poll messages and process immediately"""
         try:
-            message_records = self.consumer.poll(timeout_ms=1000)  # Increased timeout
-            collected = 0
+            message_records = self.consumer.poll(timeout_ms=1000)
+            processed = 0
             
             for topic_partition, messages in message_records.items():
                 for message in messages:
-                    self.message_batch.append(message.value)
-                    collected += 1
+                    sent = self._process_message(message.value)
+                    if sent > 0:
+                        processed += 1
+                        logger.info(f"Processed notification → {sent} transactions")
             
-            return collected
+            return processed
+            
         except Exception as e:
-            logger.error(f"Message collection failed: {e}")
+            logger.error(f"Polling failed: {e}")
             return 0
     
     def run(self):
@@ -151,30 +140,19 @@ class KafkaNotificationProcessor:
         print("🚀 Kafka Notification Processor Started")
         print(f"🌐 Connected to: {self.bootstrap_servers}")
         print(f"📥 {self.input_topic} → 📤 {self.output_topic}")
-        print(f"⏱️  Batch every {self.batch_interval}s")
         print("Press Ctrl+C to stop\n")
         
         logger.info("Processor started")
         
         try:
-            batch_count = 0
+            total_processed = 0
             while self.is_running:
-                start_time = time.time()
-                
-                # Collect messages for batch interval
-                while time.time() - start_time < self.batch_interval:
-                    self._collect_messages()
-                    time.sleep(0.1)
-                
-                batch_count += 1
-                
-                # Process batch
-                if self.message_batch:
-                    batch_size = len(self.message_batch)
-                    self._process_batch()
-                    print(f"✅ Batch {batch_count}: {batch_size} notifications processed")
+                processed = self._poll_and_process()
+                if processed > 0:
+                    total_processed += processed
+                    print(f"✅ Processed {processed} notifications (Total: {total_processed})")
                 else:
-                    print(f"⌛ Batch {batch_count}: No new notifications")
+                    time.sleep(0.1)
                 
         except KeyboardInterrupt:
             print("\n🛑 Stopping...")
@@ -189,14 +167,6 @@ class KafkaNotificationProcessor:
         """Clean up resources"""
         self.is_running = False
         
-        # Process remaining messages
-        if self.message_batch:
-            try:
-                self._process_batch()
-            except Exception as e:
-                logger.error(f"Final batch processing failed: {e}")
-        
-        # Close connections
         if self.consumer:
             self.consumer.close()
         if self.producer:
@@ -210,13 +180,12 @@ class KafkaNotificationProcessor:
 
 def main():
     config = {
-        'bootstrap_servers': ['18.136.193.239:9092'],  # Updated to remote Kafka broker
+        'bootstrap_servers': ['18.136.193.239:9092'],
         'input_topic': 'notification_parser_task',
         'output_topic': 'notification_parser_result',
         'consumer_group': 'notification_processor_v1',
         'dictionary_file': 'dictionary.json',
-        'patterns_file': 'regex_patterns.json',
-        'batch_interval': 10
+        'patterns_file': 'regex_patterns.json'
     }
     
     processor = KafkaNotificationProcessor(**config)
