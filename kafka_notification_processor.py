@@ -54,7 +54,6 @@ class KafkaNotificationProcessor:
                 auto_offset_reset='latest',
                 enable_auto_commit=True,
                 consumer_timeout_ms=1000,
-                api_version=(0, 10, 1),
                 request_timeout_ms=40000,
                 session_timeout_ms=30000,
                 heartbeat_interval_ms=10000,
