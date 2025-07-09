@@ -4,12 +4,11 @@ from kafka import KafkaProducer
 from datetime import datetime
 
 class NotificationProducer:
-    def __init__(self, bootstrap_servers=['18.136.193.239:9092'], topic='notification_parser_task'):  # Updated to remote Kafka broker
+    def __init__(self, bootstrap_servers=['172.31.31.83:9092'], topic='notification_parser_task'):  # Updated to remote Kafka broker
         self.topic = topic
         self.producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers,
             value_serializer=lambda x: json.dumps(x).encode('utf-8'),
-            api_version=(0, 10, 1),
             request_timeout_ms=60000,
             metadata_max_age_ms=300000,
             max_block_ms=60000,
