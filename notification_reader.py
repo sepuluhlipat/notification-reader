@@ -27,12 +27,12 @@ class Transaction:
     
     def to_dict(self):
         default_categories = {
-            TransactionType.INCOME: "other",
-            TransactionType.EXPENSE: "other", 
+            TransactionType.INCOME: "miscellaneous",
+            TransactionType.EXPENSE: "miscellaneous", 
             TransactionType.TRANSFER: "general"
         }
         
-        final_category = self.category or default_categories.get(self.transaction_type, "other")
+        final_category = self.category or default_categories.get(self.transaction_type, "miscellaneous")
         
         return {
             "id": self.id,
@@ -118,10 +118,41 @@ class NotificationParser:
         return None
     
     def _clean_amount(self, amount_str):
+        """
+        Clean Indonesian and English currency formats to float.
+        Indonesian: periods = thousands, comma = decimal (12.000.000,50)
+        English: commas = thousands, period = decimal (12,000,000.50)
+        """
         if not amount_str:
             return None
+        
         try:
-            return float(amount_str.replace(',', ''))
+            amount_str = amount_str.strip()
+            
+            # Indonesian format: comma as decimal separator
+            if ',' in amount_str:
+                # Find the last comma
+                last_comma_idx = amount_str.rfind(',')
+                decimal_part = amount_str[last_comma_idx + 1:]
+                
+                # Valid decimal part: 1-2 digits only
+                if len(decimal_part) <= 2 and decimal_part.isdigit():
+                    integer_part = amount_str[:last_comma_idx]
+                    return float(integer_part.replace('.', '').replace(',', '') + '.' + decimal_part)
+            
+            # English format: period as decimal separator (at end with 1-2 digits)
+            if '.' in amount_str:
+                last_period_idx = amount_str.rfind('.')
+                decimal_part = amount_str[last_period_idx + 1:]
+                
+                # Valid decimal part: 1-2 digits only
+                if len(decimal_part) <= 2 and decimal_part.isdigit():
+                    integer_part = amount_str[:last_period_idx]
+                    return float(integer_part.replace(',', '').replace('.', '') + '.' + decimal_part)
+            
+            # No decimal part: remove all separators
+            return float(amount_str.replace('.', '').replace(',', ''))
+            
         except (ValueError, AttributeError):
             return None
     
@@ -143,6 +174,12 @@ class NotificationParser:
         # Count promotional vs confirmation keywords from config
         promotional_score = sum(1 for keyword in self.promotional_keywords if keyword in text_lower)
         confirmation_score = sum(1 for keyword in self.confirmation_keywords if keyword in text_lower)
+        
+        if promotional_score >= 2:  # Multiple promotional keywords
+            return True
+    
+        if promotional_score > 0 and confirmation_score == 0:  # Only promotional, no confirmation
+            return True
         
         return promotional_score > confirmation_score and promotional_score > 0
     
@@ -172,7 +209,7 @@ class NotificationParser:
     
     def extract_category(self, text):
         if not isinstance(text, str):
-            return "other"
+            return "miscellaneous"
             
         text_lower = text.lower()
         
@@ -186,7 +223,7 @@ class NotificationParser:
             if any(keyword in text_lower for keyword in keywords):
                 return category
         
-        return "other"
+        return "miscellaneous"
     
     def _is_app_blacklisted(self, app_identifier):
         if not app_identifier:
