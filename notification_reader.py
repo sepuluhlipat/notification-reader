@@ -213,15 +213,19 @@ class NotificationParser:
             
         text_lower = text.lower()
         
-        # Check merchants first
+        # Check merchants first with word boundary matching
         for category, merchants in self.merchants.items():
-            if any(merchant in text_lower for merchant in merchants):
-                return category
+            for merchant in merchants:
+                # Use word boundaries to avoid partial matches
+                if re.search(r'\b' + re.escape(merchant) + r'\b', text_lower):
+                    return category
         
-        # Check general categories
+        # Check general categories with word boundary matching
         for category, keywords in self.categories.items():
-            if any(keyword in text_lower for keyword in keywords):
-                return category
+            for keyword in keywords:
+                # Use word boundaries to avoid partial matches
+                if re.search(r'\b' + re.escape(keyword) + r'\b', text_lower):
+                    return category
         
         return "miscellaneous"
     
