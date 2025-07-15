@@ -1,126 +1,154 @@
 {
   "categories": {
     "education": [
-      "tuition", "textbooks", "course materials", "supplies", "class", "university", 
-      "school", "college", "books", "study", "library", "training", "workshop", 
-      "seminar", "certification", "online course", "kuliah", "kursus", "les", 
-      "bimbel", "pelatihan", "sertifikasi"
+      "tuition", "textbook", "course", "training", "workshop", "seminar", 
+      "certification", "university", "school", "college", "study", "library",
+      "kuliah", "kursus", "les", "bimbel", "pelatihan", "sertifikasi", 
+      "universitas", "sekolah", "belajar", "perpustakaan", "buku pelajaran"
     ],
     "housing": [
-      "rent", "utilities", "apartment", "accommodation", "electricity", "water", 
-      "internet", "wifi", "maintenance", "repair", "furniture", "home improvement", 
-      "sewa", "kos", "kost", "kontrakan", "pln", "listrik", "air", "perbaikan", 
-      "perabotan"
+      "rent", "utilities", "apartment", "accommodation", "electricity", 
+      "water", "internet", "wifi", "maintenance", "repair", "furniture", 
+      "home improvement", "sewa", "kos", "kontrakan", "pln", "listrik", 
+      "air", "pdam", "perbaikan", "perabotan", "rumah", "apartemen"
     ],
     "food": [
-      "groceries", "dining", "restaurant", "cafe", "food delivery", "meal", 
-      "catering", "makanan", "makan", "restoran", "warung", "kantin", 
-      "belanja makanan"
+      "groceries", "dining", "restaurant", "cafe", "food delivery", 
+      "meal", "catering", "grocery", "supermarket", "makanan", "makan", 
+      "restoran", "warung", "kantin", "katering", "belanja makanan", 
+      "sembako", "pasar", "toko kelontong"
     ],
     "transport": [
-      "fuel", "gas", "parking", "toll", "public transport", "taxi", "ride share", 
-      "vehicle maintenance", "travel", "flight", "hotel", "bensin", "parkir", 
-      "tol", "transportasi", "perjalanan", "tiket", "penerbangan"
+      "fuel", "gas", "parking", "toll", "public transport", "taxi", 
+      "ride share", "vehicle maintenance", "travel", "flight", "hotel", 
+      "bensin", "parkir", "tol", "transportasi", "perjalanan", "tiket", 
+      "penerbangan", "pesawat", "kereta", "bus", "ojek"
     ],
     "shopping": [
       "clothing", "apparel", "electronics", "gadgets", "household items", 
       "personal items", "gifts", "online shopping", "retail", "department store", 
       "pakaian", "elektronik", "belanja", "hadiah", "barang pribadi", 
-      "peralatan rumah", "belanja bulanan"
+      "peralatan rumah", "fashion", "accessories", "kosmetik", "parfum"
     ],
     "savings": [
       "savings account", "investment", "deposit", "mutual fund", "stocks", 
       "bonds", "pension", "emergency fund", "loan payment", "debt payment", 
       "credit card", "tabungan", "investasi", "deposito", "reksadana", 
-      "saham", "pinjaman", "kredit"
+      "saham", "obligasi", "pinjaman", "kredit", "cicilan", "utang"
     ],
     "healthcare": [
       "medical", "doctor", "hospital", "clinic", "pharmacy", "medicine", 
       "treatment", "checkup", "dental", "vision", "health insurance", 
       "medical equipment", "dokter", "rumah sakit", "klinik", "apotek", 
-      "obat", "pengobatan", "periksa", "gigi", "mata", "kesehatan"
+      "obat", "pengobatan", "periksa", "gigi", "mata", "kesehatan", "vaksin"
     ],
     "entertainment": [
       "movie", "cinema", "concert", "show", "event", "gaming", "hobby", 
       "sports event", "recreation", "subscription", "streaming", "music", 
       "books", "magazine", "bioskop", "konser", "pertunjukan", "acara", 
-      "hiburan", "rekreasi", "langganan"
+      "hiburan", "rekreasi", "langganan", "musik", "buku", "majalah"
     ],
     "fitness": [
       "gym", "fitness", "sports", "exercise", "trainer", "equipment", 
       "supplements", "membership", "activity", "wellness", "kebugaran", 
-      "suplemen", "pelatih", "aktivitas"
+      "olahraga", "latihan", "pelatih", "suplemen", "keanggotaan", "senam"
     ],
     "business": [
       "business expense", "office supplies", "professional services", 
       "consulting", "business travel", "marketing", "advertising", 
       "software", "tools", "equipment", "pengeluaran bisnis", 
       "peralatan kantor", "jasa profesional", "konsultasi", 
-      "perjalanan bisnis", "pemasaran", "iklan", "perangkat lunak", "alat"
+      "perjalanan bisnis", "pemasaran", "iklan", "perangkat lunak",
+      "biaya admin", "admin fee", "administrative fee", "service charge", 
+      "transaction fee", "processing fee", "maintenance fee", "biaya layanan", 
+      "biaya transaksi", "biaya pemeliharaan", "biaya pengelolaan", 
+      "biaya administrasi", "monthly fee", "annual fee", "biaya bulanan", 
+      "biaya tahunan", "account fee", "banking fee", "biaya rekening"
+    ],
+    "transfer": [
+      "transfer", "transfer rekening", "transfer antar rekening", "transfer dana", 
+      "transfer ke", "transfer dari", "kirim uang", "pengiriman dana", 
+      "pemindahan dana", "internal transfer", "antar bank", "sesama bank",
+      "transfer online", "mobile transfer", "internet banking transfer",
+      "atm transfer", "real time transfer", "bi fast", "rtgs", "sknbi",
+      "fund transfer", "money transfer", "account transfer", "balance transfer",
+      "top up", "isi saldo", "tarik tunai", "cash withdrawal", "setor tunai",
+      "cash deposit", "transfer saldo", "pindah saldo"
     ],
     "refund": [
-      "refund", "refunded", "pengembalian", "dikembalikan", 
-      "pembatalan", "cancel", "cancelled", "reversal", "rollback"
+      "refund", "refunded", "return", "returned", "cancelled", "cancel", 
+      "reversal", "rollback", "chargeback", "pengembalian", "dikembalikan", 
+      "pembatalan", "batal", "kembali"
     ]
   },
   "merchants": {
     "savings": [
-      "bank mandiri", "bank bni", "bank bri", "cimb niaga", "bank danamon", 
-      "maybank indonesia", "ocbc nisp", "bank jago", "blu by bca digital", 
-      "line bank", "tmrw by uob", "seabank indonesia", "bank neo commerce", 
-      "bank aladin syariah", "linkaja wallet", "sakuku bca", "tcash telkomsel", 
-      "bibit investasi", "ajaib sekuritas", "bareksa mutual fund", 
-      "stockbit securities", "pluang investasi", "tokocrypto exchange", 
-      "indodax crypto", "akulaku pinjaman", "kredivo fintech", 
-      "spaylater shopee", "julo pinjaman", "pinjam kredit"
+      "bank mandiri", "mandiri", "bca", "bank bca", "bni", "bank bni", 
+      "bri", "bank bri", "cimb", "cimb niaga", "danamon", "bank danamon", 
+      "maybank", "maybank indonesia", "ocbc", "ocbc nisp", "jago", "bank jago", 
+      "blu", "blu by bca", "tmrw", "tmrw by uob", "seabank", "seabank indonesia", 
+      "neo", "bank neo", "aladin", "bank aladin", "linkaja", "sakuku", 
+      "tcash", "bibit", "ajaib", "bareksa", "stockbit", "pluang", 
+      "tokocrypto", "indodax", "akulaku", "kredivo", "spaylater", 
+      "julo", "dana wallet", "gopay", "ovo", "shopeepay"
+    ],
+    "transfer": [
+      "bank mandiri", "mandiri", "bca", "bank bca", "bni", "bank bni", 
+      "bri", "bank bri", "cimb", "cimb niaga", "danamon", "bank danamon", 
+      "maybank", "maybank indonesia", "ocbc", "ocbc nisp", "jago", "bank jago", 
+      "blu", "blu by bca", "tmrw", "tmrw by uob", "seabank", "seabank indonesia", 
+      "neo", "bank neo", "aladin", "bank aladin", "dana", "gopay", "ovo", 
+      "shopeepay", "linkaja", "sakuku", "tcash", "flip", "bibit", "jenius"
     ],
     "shopping": [
-      "tokopedia", "shopee indonesia", "bukalapak online", "lazada ecommerce", 
-      "blibli commerce", "jd.id shopping", "zalora fashion", "indomaret retail", 
-      "alfamart store", "hypermart supermarket", "carrefour retail", 
-      "giant supermarket", "hero supermarket", "matahari department", 
-      "centro department", "sogo department", "lottemart"
+      "tokopedia", "shopee", "bukalapak", "lazada", "blibli", "jd.id", 
+      "zalora", "indomaret", "alfamart", "hypermart", "carrefour", 
+      "giant", "hero", "matahari", "centro", "sogo", "lottemart", 
+      "transmart", "ranch market", "farmers market", "papaya", "lotte"
     ],
     "transport": [
-      "mrt jakarta", "mrtj", "blue bird taxi", "grab transport", "maxim ride", 
-      "transjakarta busway", "kai access train", "lrt jakarta", 
-      "traveloka booking", "tiket.com travel", "agoda hotels", 
-      "booking.com hotels", "pegipegi travel", "garuda indonesia", 
-      "lion air", "citilink airlines", "airasia indonesia"
+      "mrt", "mrtj", "mrt jakarta", "blue bird", "bluebird", "grab", 
+      "grab transport", "maxim", "transjakarta", "kai access", "lrt", 
+      "lrt jakarta", "traveloka", "tiket.com", "agoda", "booking.com", 
+      "pegipegi", "garuda", "garuda indonesia", "lion air", "citilink", 
+      "airasia", "batik air", "sriwijaya air", "wings air"
     ],
     "food": [
-      "gofood delivery", "grabfood service", "shopeefood delivery"
+      "gofood", "grabfood", "shopeefood", "dairy queen", "kfc", 
+      "mcdonald", "mcdonalds", "pizza hut", "domino", "dominos", 
+      "burger king", "subway", "starbucks", "dunkin", "dunkin donuts", 
+      "baskin robbins", "coldstone", "haagen dazs", "ben jerry", 
+      "auntie anne", "texas chicken", "a&w", "yoshinoya", "pepper lunch", 
+      "sushi tei", "genki sushi", "hokben", "richeese", "sabana", 
+      "solaria", "bakmi gm", "es teler 77", "chatime", "koi", 
+      "gong cha", "j.co", "breadtalk", "tous les jours", "holland bakery"
     ],
     "housing": [
-      "pln mobile listrik", "mytelkomsel pulsa", "myim3 indosat", 
-      "myxl axiata", "tri indonesia", "smartfren telecom", 
-      "indihome telkom", "first media internet", "biznet networks"
+      "pln", "pln mobile", "telkomsel", "mytelkomsel", "indosat", 
+      "myim3", "xl", "myxl", "tri", "smartfren", "indihome", 
+      "first media", "biznet", "mnc play", "oxygen", "iconnet"
     ],
     "healthcare": [
-      "halodoc telemedicine", "alodokter konsultasi", "klikdokter online", 
-      "kimia farma apotek", "guardian pharmacy", "watson pharmacy", 
-      "apotek k24", "century pharmacy", "siloam hospitals", "rs hermina", 
-      "mayapada hospital", "eka hospital", "omni hospitals", 
-      "mrccc siloam", "rscm hospital"
+      "halodoc", "alodokter", "klikdokter", "kimia farma", "guardian", 
+      "watson", "k24", "century", "siloam", "hermina", "mayapada", 
+      "eka hospital", "omni", "mrccc", "rscm", "rsud", "puskesmas"
     ],
     "entertainment": [
-      "spotify premium", "netflix streaming", "youtube premium", 
-      "disney+ hotstar", "vidio streaming", "wetv streaming", 
-      "iqiyi streaming", "amazon prime", "steam gaming", 
-      "google play store", "app store apple", "cgv cinemas", 
-      "xxi cinema", "cinepolis theater", "dufan ancol", 
-      "ancol dreamland", "trans studio", "timezone arcade", 
-      "amazone waterpark", "gramedia bookstore", "periplus bookstore"
+      "spotify", "netflix", "youtube premium", "disney", "hotstar", 
+      "vidio", "wetv", "iqiyi", "amazon prime", "steam", "google play", 
+      "app store", "cgv", "xxi", "cinepolis", "dufan", "ancol", 
+      "trans studio", "timezone", "amazone", "gramedia", "periplus", 
+      "kinokuniya", "taman safari", "ragunan"
     ],
     "fitness": [
-      "fitness first gym", "celebrity fitness", "anytime fitness", 
-      "curves fitness", "gold's gym", "true fitness", "decathlon sports", 
-      "sports station", "planet sports"
+      "fitness first", "celebrity fitness", "anytime fitness", "curves", 
+      "gold's gym", "true fitness", "decathlon", "sports station", 
+      "planet sports", "intersport", "adidas", "nike", "reebok"
     ],
     "education": [
-      "ruangguru belajar", "zenius education", "skill academy", 
-      "coursera online", "udemy courses", "khan academy", 
-      "duolingo language", "babbel language"
+      "ruangguru", "zenius", "skill academy", "coursera", "udemy", 
+      "khan academy", "duolingo", "babbel", "ef", "british council", 
+      "wall street english", "lbb", "kumon", "ganesha operation"
     ]
   },
   "transaction_types": {
@@ -128,23 +156,28 @@
       "received", "terima", "incoming", "masuk", "payment from", 
       "transfer from", "transfer masuk", "deposit", "bonus", "salary", 
       "gaji", "wage", "upah", "commission", "komisi", "dividend", 
-      "dividen", "cashback", "credit", "top up received", "isi saldo masuk"
+      "dividen", "cashback", "credit", "top up received", "isi saldo masuk",
+      "pembayaran masuk", "uang masuk", "dana masuk", "saldo bertambah"
     ],
     "expense": [
       "paid", "bayar", "payment", "pembayaran", "purchase", "pembelian", 
       "bought", "beli", "sent", "kirim", "deducted", "potong", 
       "charged", "ditagih", "bill", "tagihan", "subscription", 
-      "langganan", "fee", "biaya", "transfer to", "transfer keluar", 
-      "shopping", "belanja", "order", "pesanan", "pengeluaran"
+      "langganan", "fee", "biaya", "shopping", "belanja", "order", 
+      "pesanan", "pengeluaran", "saldo berkurang", "uang keluar", 
+      "dana keluar", "withdraw"
     ],
     "transfer": [
       "transfer", "send", "kirim", "sent to", "kirim ke", "moved", 
       "pindah", "fund transfer", "transfer dana", "inter bank", 
-      "antar bank", "remittance", "pengiriman uang"
+      "antar bank", "remittance", "pengiriman uang", "transfer antar rekening",
+      "transfer to", "transfer keluar", "transfer masuk", "transfer dari",
+      "bi fast", "rtgs", "sknbi", "real time transfer", "instant transfer"
     ]
   },
   "blacklist": [
-    "stayfree"
+    "stayfree", "spam", "promo", "iklan", "advertisement", 
+    "marketing", "survey", "broadcast", "bulk"
   ],
   "allowlist": [
     "com.android.mms", "sms", "bca mobile", "mandiri online", 
@@ -152,6 +185,7 @@
     "blu by bca digital", "jago", "tmrw by uob", "seabank", 
     "dana", "gopay", "ovo", "shopeepay", "linkaja", "grab", 
     "gojek", "tokopedia", "shopee", "bukalapak", "lazada", 
-    "blibli", "bca mybca omni android"
+    "blibli", "bca mybca omni android", "mobile banking", 
+    "internet banking", "atm", "sms banking"
   ]
 }
