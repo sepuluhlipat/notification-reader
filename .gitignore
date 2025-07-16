@@ -3,7 +3,7 @@
 *_marimo.py
 
 *.csv
-*.txt
+raw-data.txt
 *.xlsx
 
 logs/
