@@ -6,9 +6,12 @@
 raw-data.txt
 *.xlsx
 
+.streamlit/
 logs/
 venv/
 backups/
 __pycache__/
 __marimo__/
 *.pyc
+
+service_account.json

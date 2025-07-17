@@ -6,6 +6,10 @@ from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 from notification_reader import process_notification_data, NotificationParser, BlacklistError, AllowlistError
+from feedback_system import FeedbackSystem
+
+GOOGLE_SHEET_ID = "1E-yEi6C38Ju5tZPgom-MNY5dC5UmOtxSckQrdTq9dAE"
+FEEDBACK_SYSTEM = FeedbackSystem(sheet_id=GOOGLE_SHEET_ID)
 
 # Set page config
 st.set_page_config(
@@ -78,6 +82,12 @@ if 'use_custom_dictionary' not in st.session_state:
     st.session_state.use_custom_dictionary = False
 if 'use_custom_patterns' not in st.session_state:
     st.session_state.use_custom_patterns = False
+if 'feedback_submitted' not in st.session_state:
+    st.session_state.feedback_submitted = False
+if 'failed_feedback_submitted' not in st.session_state:
+    st.session_state.failed_feedback_submitted = False
+if 'current_notification_data' not in st.session_state:
+    st.session_state.current_notification_data = None
 
 # Sidebar for configuration
 st.sidebar.header("Configuration")
@@ -331,6 +341,16 @@ if processing_mode == "🔍 Test Single Notification":
         # Clear auto-fill values after processing
         if st.button("🧪 Test Single Notification", type="primary", disabled=not st.session_state.config_files_ready):
             if test_message.strip():
+                # Store the current notification data in session state BEFORE processing
+                st.session_state.current_notification_data = {
+                    'message': test_message,
+                    'contents': test_contents,
+                    'app_label': test_app_label,
+                    'package_name': test_package_name,
+                    'user_id': test_user_id,
+                    'notification_id': test_id
+                }
+                
                 # Clear auto-fill values
                 if hasattr(st.session_state, 'auto_message'):
                     delattr(st.session_state, 'auto_message')
@@ -445,13 +465,91 @@ if processing_mode == "🔍 Test Single Notification":
                 st.metric("Transaction Type", result_data.iloc[0]['transaction_type'])
             
             with col3:
-                st.metric("Category", result_data.iloc[0]['category'])
+                parsed_category = result_data.iloc[0]['category']
+                st.metric("Category", parsed_category)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
             # Show detailed parsing results
             st.subheader("Detailed Parsing Results")
             st.dataframe(result_data, use_container_width=True)
+            
+            # Feedback Section
+            st.subheader("📝 Feedback")
+            st.write("Is the parsed category correct? Help us improve the parser!")
+            
+            # Check if feedback was just submitted
+            if st.session_state.get('feedback_submitted', False):
+                st.success("✅ Thank you! Your feedback has been submitted successfully.")
+                st.session_state.feedback_submitted = False
+            
+            # Create columns for feedback form
+            feedback_col1, feedback_col2 = st.columns([2, 1])
+            
+            with feedback_col1:
+                # Check if category is correct
+                is_correct = st.radio(
+                    "Is the parsed category correct?",
+                    ["✅ Yes, it's correct", "❌ No, it's wrong"],
+                    key="category_feedback"
+                )
+                
+                if is_correct == "❌ No, it's wrong":
+                    # Input for correct category
+                    correct_category = st.text_input(
+                        "What should be the correct category?",
+                        placeholder="e.g., Food & Dining, Transportation, etc.",
+                        key="correct_category"
+                    )
+                    
+                    # Remarks
+                    remarks = st.text_area(
+                        "Additional remarks (optional)",
+                        placeholder="Any additional comments about this transaction...",
+                        key="feedback_remarks"
+                    )
+                    
+                    # Submit feedback button
+                    if st.button("📤 Submit Feedback", type="primary"):
+                        if correct_category.strip():
+                            # Use the stored notification data from session state
+                            if st.session_state.current_notification_data:
+                                notification_data = st.session_state.current_notification_data
+                                
+                                # Submit feedback
+                                with st.spinner("Submitting feedback..."):
+                                    success = FEEDBACK_SYSTEM.submit_feedback(
+                                        notification_data=notification_data,
+                                        parsed_category=parsed_category,
+                                        correct_category=correct_category,
+                                        remarks=remarks,
+                                        user_id=notification_data.get('user_id', 'test_user')
+                                    )
+                                    
+                                    if success:
+                                        st.success("✅ Thank you! Your feedback has been submitted.")
+                                        st.balloons()
+                                        # Set a flag to show success message and reset form
+                                        st.session_state.feedback_submitted = True
+                                        st.rerun()
+                                    else:
+                                        st.error("❌ Failed to submit feedback. Please try again.")
+                            else:
+                                st.error("❌ No notification data available. Please test a notification first.")
+                        else:
+                            st.warning("⚠️ Please enter the correct category.")
+                else:
+                    st.success("✅ Great! The parser is working correctly for this transaction.")
+            
+            with feedback_col2:
+                st.info(
+                    "**Help us improve!** 🚀\n\n"
+                    "Your feedback helps us:\n"
+                    "- Improve category detection\n"
+                    "- Add new transaction patterns\n"
+                    "- Fix parsing errors\n"
+                    "- Better understand user needs"
+                )
             
             # Download single result
             single_csv = result_data.to_csv(index=False)
@@ -467,6 +565,55 @@ if processing_mode == "🔍 Test Single Notification":
             st.write("- The message format is not recognized by the current patterns")
             st.write("- The notification was filtered out as promotional")
             st.write("- The dictionary doesn't contain matching keywords")
+            
+            # Feedback for failed parsing
+            st.subheader("📝 Feedback for Failed Parsing")
+            st.write("Help us understand what went wrong!")
+            
+            # Check if feedback was just submitted
+            if st.session_state.get('failed_feedback_submitted', False):
+                st.success("✅ Thank you! Your feedback has been submitted successfully.")
+                st.session_state.failed_feedback_submitted = False
+            
+            expected_category = st.text_input(
+                "What category should this transaction be?",
+                placeholder="e.g., Food & Dining, Transportation, etc.",
+                key="failed_category"
+            )
+            
+            failed_remarks = st.text_area(
+                "Why do you think parsing failed?",
+                placeholder="e.g., New transaction format, missing keywords, etc.",
+                key="failed_remarks"
+            )
+            
+            if st.button("📤 Submit Feedback for Failed Parsing", type="primary"):
+                if expected_category.strip():
+                    # Use the stored notification data from session state
+                    if st.session_state.current_notification_data:
+                        notification_data = st.session_state.current_notification_data
+                        
+                        with st.spinner("Submitting feedback..."):
+                            success = FEEDBACK_SYSTEM.submit_feedback(
+                                notification_data=notification_data,
+                                parsed_category="PARSING_FAILED",
+                                correct_category=expected_category,
+                                remarks=failed_remarks,
+                                user_id=notification_data.get('user_id', 'test_user')
+                            )
+                            
+                            if success:
+                                st.success("✅ Thank you! Your feedback has been submitted.")
+                                st.balloons()
+                                # Set flag for feedback submission
+                                st.session_state.failed_feedback_submitted = True
+                                st.rerun()
+                            else:
+                                st.error("❌ Failed to submit feedback. Please try again.")
+                    else:
+                        st.error("❌ No notification data available. Please test a notification first.")
+                else:
+                    st.warning("⚠️ Please enter the expected category.")
 
 else:
     # CSV file processing section (original functionality)
@@ -719,6 +866,38 @@ if processing_mode == "📊 Process CSV File" and st.session_state.processed_dat
                 file_name=f"processed_transactions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
                 mime="application/json"
             )
+
+if st.sidebar.button("📊 View Feedback Analytics"):
+    st.header("📊 Feedback Analytics")
+    
+    with st.spinner("Loading feedback data..."):
+        feedback_data = FEEDBACK_SYSTEM.get_feedback_data()
+        
+        if feedback_data is not None and not feedback_data.empty:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.metric("Total Feedback", len(feedback_data))
+                st.metric("Incorrect Predictions", len(feedback_data[feedback_data['parsed_category'] != feedback_data['correct_category']]))
+            
+            with col2:
+                st.metric("Failed Parsing", len(feedback_data[feedback_data['parsed_category'] == 'PARSING_FAILED']))
+                accuracy = len(feedback_data[feedback_data['parsed_category'] == feedback_data['correct_category']]) / len(feedback_data) * 100
+                st.metric("Accuracy", f"{accuracy:.1f}%")
+            
+            st.subheader("Recent Feedback")
+            st.dataframe(feedback_data.tail(10))
+            
+            # Download feedback data
+            feedback_csv = feedback_data.to_csv(index=False)
+            st.download_button(
+                label="📥 Download Feedback Data",
+                data=feedback_csv,
+                file_name=f"feedback_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv"
+            )
+        else:
+            st.info("No feedback data available yet.")
 
 # Personalization section
 st.header("🎨 Personalization")
