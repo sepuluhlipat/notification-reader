@@ -16,7 +16,8 @@
       "groceries", "dining", "restaurant", "cafe", "food delivery", 
       "meal", "catering", "grocery", "supermarket", "makanan", "makan", 
       "restoran", "warung", "kantin", "katering", "belanja makanan", 
-      "sembako", "pasar", "toko kelontong"
+      "sembako", "pasar", "toko kelontong", "soto", "bakmi jawa",
+      "ketoprak"
     ],
     "transport": [
       "fuel", "gas", "parking", "toll", "public transport", "taxi", 
@@ -121,7 +122,8 @@
       "auntie anne", "texas chicken", "a&w", "yoshinoya", "pepper lunch", 
       "sushi tei", "genki sushi", "hokben", "richeese", "sabana", 
       "solaria", "bakmi gm", "es teler 77", "chatime", "koi", 
-      "gong cha", "j.co", "breadtalk", "tous les jours", "holland bakery"
+      "gong cha", "j.co", "breadtalk", "tous les jours", "holland bakery",
+      "mixue"
     ],
     "housing": [
       "pln", "pln mobile", "telkomsel", "mytelkomsel", "indosat", 
@@ -182,7 +184,7 @@
   "allowlist": [
     "com.android.mms", "sms", "bca mobile", "mandiri online", 
     "bni mobile banking", "bri mobile", "livin' by mandiri", 
-    "blu by bca digital", "jago", "tmrw by uob", "seabank", 
+    "blu by bca digital", "tmrw by uob", "seabank", 
     "dana", "gopay", "ovo", "shopeepay", "linkaja", "grab", 
     "gojek", "tokopedia", "shopee", "bukalapak", "lazada", 
     "blibli", "bca mybca omni android", "mobile banking", 
