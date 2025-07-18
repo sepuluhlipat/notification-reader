@@ -3,7 +3,7 @@
 *_marimo.py
 
 *.csv
-*.txt
+raw-data.txt
 *.xlsx
 
 .streamlit/
@@ -13,3 +13,5 @@ backups/
 __pycache__/
 __marimo__/
 *.pyc
+
+service_account.json

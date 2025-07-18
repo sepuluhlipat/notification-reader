@@ -4,12 +4,11 @@ from kafka import KafkaProducer
 from datetime import datetime
 
 class NotificationProducer:
-    def __init__(self, bootstrap_servers=['18.136.193.239:9092'], topic='notification_parser_task'):  # Updated to remote Kafka broker
+    def __init__(self, bootstrap_servers=['172.31.31.83:9092'], topic='notification_parser_task'):  # Updated to remote Kafka broker
         self.topic = topic
         self.producer = KafkaProducer(
             bootstrap_servers=bootstrap_servers,
             value_serializer=lambda x: json.dumps(x).encode('utf-8'),
-            api_version=(0, 10, 1),
             request_timeout_ms=60000,
             metadata_max_age_ms=300000,
             max_block_ms=60000,
@@ -34,40 +33,40 @@ class NotificationProducer:
         """Send a batch of test notifications"""
         test_notifications = [
             {
-                'ID': f'test_{int(time.time())}_001',
-                'PACKAGE_NAME': 'com.hdfc.bank',
-                'APP_LABEL': 'HDFC Bank',
-                'MESSAGE': 'Your account has been debited with Rs. 1,500.00 at ATM',
-                'DATE': datetime.now().strftime('%Y-%m-%d'),
-                'CONTENTS': 'ATM withdrawal transaction notification',
-                'TIMESTAMP': datetime.now().isoformat()
+                'user_id': f'test_{int(time.time())}_001',
+                'package_name': 'com.hdfc.bank',
+                'app_label': 'HDFC Bank',
+                'message': 'Your account has been debited with Rs. 1,500.00 at ATM',
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'contents': 'ATM withdrawal transaction notification',
+                'timestamp': datetime.now().isoformat()
             },
             {
-                'ID': f'test_{int(time.time())}_002',
-                'PACKAGE_NAME': 'com.sbi.bank',
-                'APP_LABEL': 'SBI Bank',
-                'MESSAGE': 'Your account has been credited with Rs. 25,000.00 - Salary',
-                'DATE': datetime.now().strftime('%Y-%m-%d'),
-                'CONTENTS': 'Salary credit notification',
-                'TIMESTAMP': datetime.now().isoformat()
+                'user_id': f'test_{int(time.time())}_002',
+                'package_name': 'com.sbi.bank',
+                'app_label': 'SBI Bank',
+                'message': 'Your account has been credited with Rs. 25,000.00 - Salary',
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'contents': 'Salary credit notification',
+                'timestamp': datetime.now().isoformat()
             },
             {
-                'ID': f'test_{int(time.time())}_003',
-                'PACKAGE_NAME': 'com.paytm',
-                'APP_LABEL': 'Paytm',
-                'MESSAGE': 'UPI payment of Rs. 450.00 sent to merchant',
-                'DATE': datetime.now().strftime('%Y-%m-%d'),
-                'CONTENTS': 'UPI transaction notification',
-                'TIMESTAMP': datetime.now().isoformat()
+                'user_id': f'test_{int(time.time())}_003',
+                'package_name': 'com.paytm',
+                'app_label': 'Paytm',
+                'message': 'UPI payment of Rs. 450.00 sent to merchant',
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'contents': 'UPI transaction notification',
+                'timestamp': datetime.now().isoformat()
             },
             {
-                'ID': f'test_{int(time.time())}_004',
-                'PACKAGE_NAME': 'com.icici.bank',
-                'APP_LABEL': 'ICICI Bank',
-                'MESSAGE': 'Transfer of Rs. 2,000.00 to John Doe completed',
-                'DATE': datetime.now().strftime('%Y-%m-%d'),
-                'CONTENTS': 'Fund transfer notification',
-                'TIMESTAMP': datetime.now().isoformat()
+                'user_id': f'test_{int(time.time())}_004',
+                'package_name': 'com.icici.bank',
+                'app_label': 'ICICI Bank',
+                'message': 'Transfer of Rs. 2,000.00 to John Doe completed',
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'contents': 'Fund transfer notification',
+                'timestamp': datetime.now().isoformat()
             }
         ]
         
@@ -78,7 +77,7 @@ class NotificationProducer:
         for i, notification in enumerate(test_notifications, 1):
             if self.send_notification(notification):
                 sent_count += 1
-                print(f"✅ {i}/{len(test_notifications)} - {notification['APP_LABEL']}: Rs.{self._extract_amount(notification['MESSAGE'])}")
+                print(f"✅ {i}/{len(test_notifications)} - {notification['app_label']}: Rs.{self._extract_amount(notification['message'])}")
             time.sleep(1)  # Small delay between sends
         
         print("=" * 60)
@@ -93,22 +92,22 @@ class NotificationProducer:
         
         notification_templates = [
             {
-                'PACKAGE_NAME': 'com.hdfc.bank',
-                'APP_LABEL': 'HDFC Bank',
-                'MESSAGE': 'Your account debited Rs. {amount} for {merchant}',
-                'CONTENTS': 'Purchase transaction'
+                'package_name': 'com.hdfc.bank',
+                'app_label': 'HDFC Bank',
+                'message': 'Your account debited Rs. {amount} for {merchant}',
+                'contents': 'Purchase transaction'
             },
             {
-                'PACKAGE_NAME': 'com.paytm',
-                'APP_LABEL': 'Paytm',
-                'MESSAGE': 'UPI payment Rs. {amount} sent successfully',
-                'CONTENTS': 'UPI transaction'
+                'package_name': 'com.paytm',
+                'app_label': 'Paytm',
+                'message': 'UPI payment Rs. {amount} sent successfully',
+                'contents': 'UPI transaction'
             },
             {
-                'PACKAGE_NAME': 'com.sbi.bank',
-                'APP_LABEL': 'SBI Bank',
-                'MESSAGE': 'Account credited with Rs. {amount}',
-                'CONTENTS': 'Credit transaction'
+                'package_name': 'com.sbi.bank',
+                'app_label': 'SBI Bank',
+                'message': 'Account credited with Rs. {amount}',
+                'contents': 'Credit transaction'
             }
         ]
         
@@ -124,19 +123,19 @@ class NotificationProducer:
                 merchant = random.choice(merchants)
                 
                 notification = {
-                    'ID': f'auto_{int(time.time())}_{sent_count:03d}',
-                    'PACKAGE_NAME': template['PACKAGE_NAME'],
-                    'APP_LABEL': template['APP_LABEL'],
-                    'MESSAGE': template['MESSAGE'].format(amount=amount, merchant=merchant),
-                    'DATE': datetime.now().strftime('%Y-%m-%d'),
-                    'CONTENTS': template['CONTENTS'],
-                    'TIMESTAMP': datetime.now().isoformat()
+                    'user_id': f'auto_{int(time.time())}_{sent_count:03d}',
+                    'package_name': template['package_name'],
+                    'app_label': template['app_label'],
+                    'message': template['message'].format(amount=amount, merchant=merchant),
+                    'date': datetime.now().strftime('%Y-%m-%d'),
+                    'contents': template['contents'],
+                    'timestamp': datetime.now().isoformat()
                 }
                 
                 if self.send_notification(notification):
                     sent_count += 1
-                    print(f"📤 #{sent_count} - {notification['APP_LABEL']}: Rs.{amount}")
-                
+                    print(f"📤 #{sent_count} - {notification['app_label']}: Rs.{amount}")
+
                 time.sleep(interval)
                 
         except KeyboardInterrupt:
@@ -166,13 +165,13 @@ def main():
             elif sys.argv[1] == "single":
                 # Send a single test notification
                 notification = {
-                    'ID': f'manual_{int(time.time())}',
-                    'PACKAGE_NAME': 'com.test.bank',
-                    'APP_LABEL': 'Test Bank',
-                    'MESSAGE': 'Account debited Rs. 100.00 for coffee',
-                    'DATE': datetime.now().strftime('%Y-%m-%d'),
-                    'CONTENTS': 'Test transaction',
-                    'TIMESTAMP': datetime.now().isoformat()
+                    'user_id': f'manual_{int(time.time())}',
+                    'package_name': 'com.test.bank',
+                    'app_label': 'Test Bank',
+                    'message': 'Account debited Rs. 100.00 for coffee',
+                    'date': datetime.now().strftime('%Y-%m-%d'),
+                    'contents': 'Test transaction',
+                    'timestamp': datetime.now().isoformat()
                 }
                 if producer.send_notification(notification):
                     print("✅ Single notification sent!")
