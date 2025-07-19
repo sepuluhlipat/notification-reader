@@ -163,7 +163,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Initialize session state
+# Initialize session state with proper defaults
 if 'single_test_result' not in st.session_state:
     st.session_state.single_test_result = None
 if 'parsing_failure_reason' not in st.session_state:
@@ -203,12 +203,12 @@ st.markdown('<div class="username-section">', unsafe_allow_html=True)
 st.subheader("👤 User Information")
 username = st.text_input(
     "Username (optional)",
-    value=st.session_state.username,
+    value=st.session_state.username or "",
     placeholder="Enter your name here.",
     help="This helps us track feedback. Leave blank if you prefer to remain anonymous.",
     key="username_input"
 )
-st.session_state.username = username if username and username.strip() else None
+st.session_state.username = username.strip() if username else None
 st.markdown('</div>', unsafe_allow_html=True)
 
 def get_suggested_feedback(reason_code, reason_description, message, app_label):
@@ -255,35 +255,51 @@ def diagnose_parsing_failure(message, contents, app_label, parser):
     """
     Diagnose why parsing failed and return specific reason
     """
-    full_text = f"{message} {contents}"
-    
-    # Check if app is allowlisted
-    if not parser._is_app_allowlisted(app_label):
-        return "app_not_allowlisted", f"App '{app_label}' is not in the allowlist"
-    
-    # Check if app is blacklisted  
-    if parser._is_app_blacklisted(app_label):
-        return "app_blacklisted", f"App '{app_label}' is blacklisted"
-    
-    # Check if promotional
-    if parser._is_promotional_message(full_text):
-        return "promotional_message", "Message was detected as promotional/marketing content"
-    
-    # Check if amount can be extracted
-    amount = parser.extract_amount(full_text)
-    if amount is None:
-        return "no_amount_found", "No valid amount could be extracted from the message"
-    
-    if amount <= 0:
-        return "invalid_amount", f"Amount found ({amount}) is zero or negative"
-    
-    # Check transaction type
-    transaction_type = parser.extract_transaction_type(full_text)
-    if transaction_type.value == "unknown":
-        return "unknown_transaction_type", "Transaction type could not be determined"
-    
-    # If we reach here, parsing should have succeeded
-    return "unknown_error", "Parsing failed for unknown reasons"
+    try:
+        full_text = f"{message} {contents}"
+        
+        # Check if app is allowlisted
+        if not parser._is_app_allowlisted(app_label):
+            return "app_not_allowlisted", f"App '{app_label}' is not in the allowlist"
+        
+        # Check if app is blacklisted  
+        if parser._is_app_blacklisted(app_label):
+            return "app_blacklisted", f"App '{app_label}' is blacklisted"
+        
+        # Check if promotional
+        if parser._is_promotional_message(full_text):
+            return "promotional_message", "Message was detected as promotional/marketing content"
+        
+        # Check if amount can be extracted
+        amount = parser.extract_amount(full_text)
+        if amount is None:
+            return "no_amount_found", "No valid amount could be extracted from the message"
+        
+        if amount <= 0:
+            return "invalid_amount", f"Amount found ({amount}) is zero or negative"
+        
+        # Check transaction type
+        transaction_type = parser.extract_transaction_type(full_text)
+        if transaction_type.value == "unknown":
+            return "unknown_transaction_type", "Transaction type could not be determined"
+        
+        # If we reach here, parsing should have succeeded
+        return "unknown_error", "Parsing failed for unknown reasons"
+        
+    except Exception as e:
+        return "processing_error", f"Error during diagnosis: {str(e)}"
+
+def create_notification_data(message, app_label, username):
+    """
+    Create a properly structured notification data dictionary
+    """
+    return {
+        'message': str(message or ''),
+        'app_label': str(app_label or ''),
+        'user_id': str(username or 'test_user'),
+        'notification_id': f"test_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+        'timestamp': datetime.now().isoformat()
+    }
 
 # Single notification testing section
 st.markdown('<div class="test-section">', unsafe_allow_html=True)
@@ -321,13 +337,10 @@ with col1:
     # Test button
     if st.button("🧪 Test Notification", type="primary"):
         if test_message.strip():
-            # Store the current notification data in session state BEFORE processing
-            st.session_state.current_notification_data = {
-                'message': test_message,
-                'app_label': test_app_label,
-                'user_id': st.session_state.username,
-                'notification_id': f"test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            }
+            # Create notification data with proper structure
+            st.session_state.current_notification_data = create_notification_data(
+                test_message, test_app_label, st.session_state.username
+            )
             
             # Reset failure reason and suggested feedback
             st.session_state.parsing_failure_reason = None
@@ -346,7 +359,7 @@ with col1:
                         'message': [test_message],
                         'contents': [""],
                         'timestamp': [datetime.now().isoformat()],
-                        'user_id': [st.session_state.username]
+                        'user_id': [st.session_state.username or 'test_user']
                     })
                     
                     # Process the single notification
@@ -366,7 +379,7 @@ with col1:
                         
                         # Diagnose why parsing failed
                         reason_code, reason_description = diagnose_parsing_failure(
-                            test_message, "", test_app_label, parser
+                            test_message, "", test_app_label or "unknown", parser
                         )
                         st.session_state.parsing_failure_reason = {
                             'code': reason_code,
@@ -375,18 +388,17 @@ with col1:
                         
                         # Generate suggested feedback
                         st.session_state.suggested_feedback = get_suggested_feedback(
-                            reason_code, reason_description, test_message, test_app_label
+                            reason_code, reason_description, test_message, test_app_label or "unknown"
                         )
                     
                 except Exception as e:
                     st.error(f"❌ Error processing notification: {str(e)}")
-                    st.exception(e)
                     st.session_state.parsing_failure_reason = {
                         'code': 'processing_error',
                         'description': f"Error during processing: {str(e)}"
                     }
                     st.session_state.suggested_feedback = get_suggested_feedback(
-                        'processing_error', f"Error during processing: {str(e)}", test_message, test_app_label
+                        'processing_error', f"Error during processing: {str(e)}", test_message, test_app_label or "unknown"
                     )
         else:
             st.warning("⚠️ Please enter a notification message to test")
@@ -477,30 +489,30 @@ if st.session_state.single_test_result is not None:
             if is_correct == "✅ Yes, it's correct":
                 # Submit button for correct predictions
                 if st.button("✅ Confirm Correct Prediction", type="primary"):
-                    # Use the stored notification data from session state
+                    # Check if notification data exists
                     if st.session_state.current_notification_data:
-                        notification_data = st.session_state.current_notification_data
-                        user_id = st.session_state.username if st.session_state.username else "test_user"
-                        
-                        # Submit feedback for correct prediction
-                        with st.spinner("Submitting feedback..."):
-                            success = FEEDBACK_SYSTEM.submit_feedback(
-                                notification_data=notification_data,
-                                parsed_category=parsed_category,
-                                correct_category="", # Empty if correct
-                                remarks="",  # Empty remarks for correct predictions
-                                user_id=user_id,
-                                is_correct_prediction=True
-                            )
-                            
-                            if success:
-                                st.success("✅ Thank you! Your confirmation has been recorded.")
-                                st.balloons()
-                                # Set a flag to show success message
-                                st.session_state.feedback_submitted = True
-                                st.rerun()
-                            else:
-                                st.error("❌ Failed to submit feedback. Please try again.")
+                        try:
+                            # Submit feedback for correct prediction
+                            with st.spinner("Submitting feedback..."):
+                                success = FEEDBACK_SYSTEM.submit_feedback(
+                                    notification_data=st.session_state.current_notification_data,
+                                    parsed_category=parsed_category,
+                                    correct_category="", # Empty if correct
+                                    remarks="",  # Empty remarks for correct predictions
+                                    user_id=st.session_state.username or "test_user",
+                                    is_correct_prediction=True
+                                )
+                                
+                                if success:
+                                    st.success("✅ Thank you! Your confirmation has been recorded.")
+                                    st.balloons()
+                                    # Set a flag to show success message
+                                    st.session_state.feedback_submitted = True
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Failed to submit feedback. Please try again.")
+                        except Exception as e:
+                            st.error(f"❌ Error submitting feedback: {str(e)}")
                     else:
                         st.error("❌ No notification data available. Please test a notification first.")
                 
@@ -522,30 +534,30 @@ if st.session_state.single_test_result is not None:
                 # Submit feedback button for incorrect predictions
                 if st.button("📤 Submit Correction", type="primary"):
                     if correct_category.strip():
-                        # Use the stored notification data from session state
+                        # Check if notification data exists
                         if st.session_state.current_notification_data:
-                            notification_data = st.session_state.current_notification_data
-                            user_id = st.session_state.username if st.session_state.username else "test_user"
-                            
-                            # Submit feedback for incorrect prediction
-                            with st.spinner("Submitting feedback..."):
-                                success = FEEDBACK_SYSTEM.submit_feedback(
-                                    notification_data=notification_data,
-                                    parsed_category=parsed_category,
-                                    correct_category=correct_category,
-                                    remarks=remarks,
-                                    user_id=user_id,
-                                    is_correct_prediction=False
-                                )
-                                
-                                if success:
-                                    st.success("✅ Thank you! Your feedback has been submitted.")
-                                    st.balloons()
-                                    # Set a flag to show success message and reset form
-                                    st.session_state.feedback_submitted = True
-                                    st.rerun()
-                                else:
-                                    st.error("❌ Failed to submit feedback. Please try again.")
+                            try:
+                                # Submit feedback for incorrect prediction
+                                with st.spinner("Submitting feedback..."):
+                                    success = FEEDBACK_SYSTEM.submit_feedback(
+                                        notification_data=st.session_state.current_notification_data,
+                                        parsed_category=parsed_category,
+                                        correct_category=correct_category,
+                                        remarks=remarks,
+                                        user_id=st.session_state.username or "test_user",
+                                        is_correct_prediction=False
+                                    )
+                                    
+                                    if success:
+                                        st.success("✅ Thank you! Your feedback has been submitted.")
+                                        st.balloons()
+                                        # Set a flag to show success message and reset form
+                                        st.session_state.feedback_submitted = True
+                                        st.rerun()
+                                    else:
+                                        st.error("❌ Failed to submit feedback. Please try again.")
+                            except Exception as e:
+                                st.error(f"❌ Error submitting feedback: {str(e)}")
                         else:
                             st.error("❌ No notification data available. Please test a notification first.")
                     else:
@@ -581,23 +593,18 @@ if st.session_state.single_test_result is not None:
             st.markdown(f"<h4>💡 How to help us fix this:</h4>", unsafe_allow_html=True)
             
             # Display specific solutions with aligned explanations
-            if reason_code == "promotional_message":
-                st.write("**Solution:** If this is actually a transaction (not promotional content), please provide feedback below. We'll use your input to improve our promotional detection system.")
-            elif reason_code == "no_amount_found":
-                st.write("**Solution:** The system couldn't find a valid monetary amount. Please provide feedback below with the correct category, and we'll improve our amount detection patterns.")
-            elif reason_code == "invalid_amount":
-                st.write("**Solution:** The amount found was zero or negative. Please provide feedback below to help us fix the amount extraction logic.")
-            elif reason_code == "app_not_allowlisted":
-                st.write("**Solution:** This app isn't in our financial apps list. Please provide feedback below if this is a banking/financial app, and we'll add it to our system.")
-            elif reason_code == "app_blacklisted":
-                st.write("**Solution:** This app is currently blocked. Please provide feedback below if this app actually sends financial notifications, and we'll review our blacklist.")
-            elif reason_code == "unknown_transaction_type":
-                st.write("**Solution:** We couldn't determine if this is income, expense, or transfer. Please provide feedback below with the correct category to help us improve transaction type detection.")
-            elif reason_code == "processing_error":
-                st.write("**Solution:** A technical error occurred. Please provide feedback below with the correct category, and we'll investigate the issue.")
-            else:
-                st.write("**Solution:** Please provide feedback below with the correct category and any additional details to help us understand this transaction format.")
+            solution_text = {
+                "promotional_message": "**Solution:** If this is actually a transaction (not promotional content), please provide feedback below. We'll use your input to improve our promotional detection system.",
+                "no_amount_found": "**Solution:** The system couldn't find a valid monetary amount. Please provide feedback below with the correct category, and we'll improve our amount detection patterns.",
+                "invalid_amount": "**Solution:** The amount found was zero or negative. Please provide feedback below to help us fix the amount extraction logic.",
+                "app_not_allowlisted": "**Solution:** This app isn't in our financial apps list. Please provide feedback below if this is a banking/financial app, and we'll add it to our system.",
+                "app_blacklisted": "**Solution:** This app is currently blocked. Please provide feedback below if this app actually sends financial notifications, and we'll review our blacklist.",
+                "unknown_transaction_type": "**Solution:** We couldn't determine if this is income, expense, or transfer. Please provide feedback below with the correct category to help us improve transaction type detection.",
+                "processing_error": "**Solution:** A technical error occurred. Please provide feedback below with the correct category, and we'll investigate the issue.",
+                "unknown_error": "**Solution:** Please provide feedback below with the correct category and any additional details to help us understand this transaction format."
+            }
             
+            st.write(solution_text.get(reason_code, solution_text["unknown_error"]))
             st.write("**👇 Your feedback below will help us fix this specific issue.**")
             st.markdown('</div>', unsafe_allow_html=True)
         
@@ -640,33 +647,34 @@ if st.session_state.single_test_result is not None:
         
         if st.button("📤 Submit Feedback for Failed Parsing", type="primary"):
             if expected_category.strip():
-                # Use the stored notification data from session state
+                # Check if notification data exists
                 if st.session_state.current_notification_data:
-                    notification_data = st.session_state.current_notification_data
-                    
-                    # Add specific failure reason to remarks if not already included
-                    combined_remarks = failed_remarks
-                    if st.session_state.parsing_failure_reason and not suggested_remarks:
-                        failure_info = st.session_state.parsing_failure_reason
-                        combined_remarks = f"Failure reason: {failure_info['description']}\n\nUser remarks: {failed_remarks}"
-                    
-                    with st.spinner("Submitting feedback..."):
-                        success = FEEDBACK_SYSTEM.submit_feedback(
-                            notification_data=notification_data,
-                            parsed_category="PARSING_FAILED",
-                            correct_category=expected_category,
-                            remarks=combined_remarks,
-                            user_id=st.session_state.username
-                        )
+                    try:
+                        # Add specific failure reason to remarks if not already included
+                        combined_remarks = failed_remarks
+                        if st.session_state.parsing_failure_reason and not suggested_remarks:
+                            failure_info = st.session_state.parsing_failure_reason
+                            combined_remarks = f"Failure reason: {failure_info['description']}\n\nUser remarks: {failed_remarks}"
                         
-                        if success:
-                            st.success("✅ Thank you! Your feedback has been submitted.")
-                            st.balloons()
-                            # Set flag for feedback submission
-                            st.session_state.failed_feedback_submitted = True
-                            st.rerun()
-                        else:
-                            st.error("❌ Failed to submit feedback. Please try again.")
+                        with st.spinner("Submitting feedback..."):
+                            success = FEEDBACK_SYSTEM.submit_feedback(
+                                notification_data=st.session_state.current_notification_data,
+                                parsed_category="PARSING_FAILED",
+                                correct_category=expected_category,
+                                remarks=combined_remarks,
+                                user_id=st.session_state.username or "test_user"
+                            )
+                            
+                            if success:
+                                st.success("✅ Thank you! Your feedback has been submitted.")
+                                st.balloons()
+                                # Set flag for feedback submission
+                                st.session_state.failed_feedback_submitted = True
+                                st.rerun()
+                            else:
+                                st.error("❌ Failed to submit feedback. Please try again.")
+                    except Exception as e:
+                        st.error(f"❌ Error submitting feedback: {str(e)}")
                 else:
                     st.error("❌ No notification data available. Please test a notification first.")
             else:
