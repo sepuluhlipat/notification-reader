@@ -59,16 +59,17 @@ class FeedbackSystem:
             st.error(f"Failed to connect to Google Sheets: {str(e)}")
             return False
     
-    def submit_feedback(self, notification_data, parsed_category, correct_category, remarks, user_id):
+    def submit_feedback(self, notification_data, parsed_category, correct_category, remarks, user_id, is_correct_prediction=None):
         """
         Submit feedback to Google Sheets
         
         Args:
             notification_data: Dict containing notification details
             parsed_category: Category that was parsed by the system
-            correct_category: Correct category provided by user
+            correct_category: Correct category provided by user (can be same as parsed if correct)
             remarks: User remarks
             user_id: User identifier
+            is_correct_prediction: Boolean indicating if the prediction was correct
         """
         if not self.connect_to_sheet():
             return False
@@ -77,17 +78,20 @@ class FeedbackSystem:
             # Debug: Print the notification_data to see what's being passed
             print("Notification data being submitted:", notification_data)
             
-            # Prepare the row data with better error handling
+            # Determine if prediction is correct
+            if is_correct_prediction is None:
+                is_correct_prediction = parsed_category.lower() == correct_category.lower()
+            
+            # Prepare the row data with the new column
             row_data = [
                 datetime.now().isoformat(),  # timestamp
                 str(notification_data.get('message', '')),  # notification_message
-                str(notification_data.get('contents', '')),  # notification_contents
                 str(notification_data.get('app_label', '')),  # app_label
-                str(notification_data.get('package_name', '')),  # package_name
                 str(parsed_category),  # parsed_category
-                str(correct_category),  # correct_category
-                str(remarks),  # remarks
-                str(user_id)  # user_id
+                str(correct_category) if not is_correct_prediction else "", # correct_category (empty if correct)
+                str(remarks) if not is_correct_prediction else "",  # remarks (empty if correct)
+                str(user_id),  # user_id
+                "Yes" if is_correct_prediction else "No"  # correct_prediction
             ]
             
             # Debug: Print the row data
@@ -102,20 +106,6 @@ class FeedbackSystem:
             st.error(f"Failed to submit feedback: {str(e)}")
             print(f"Error details: {e}")
             return False
-    
-    def get_feedback_data(self):
-        """Get all feedback data from the sheet"""
-        if not self.connect_to_sheet():
-            return None
-            
-        try:
-            # Get all records
-            records = self.worksheet.get_all_records()
-            return pd.DataFrame(records)
-            
-        except Exception as e:
-            st.error(f"Failed to retrieve feedback data: {str(e)}")
-            return None
 
     def initialize_sheet_headers(self):
         """Initialize the sheet with proper headers if it's empty"""
@@ -126,17 +116,16 @@ class FeedbackSystem:
             # Check if sheet has headers
             all_values = self.worksheet.get_all_values()
             if not all_values:
-                # Sheet is empty, add headers
+                # Sheet is empty, add headers with the new column
                 headers = [
                     'timestamp',
                     'notification_message',
-                    'notification_contents',
                     'app_label',
-                    'package_name',
                     'parsed_category',
                     'correct_category',
                     'remarks',
-                    'user_id'
+                    'user_id',
+                    'correct_prediction'  # New column
                 ]
                 self.worksheet.append_row(headers)
                 return True

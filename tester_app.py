@@ -67,14 +67,23 @@ st.markdown("""
         text-decoration: underline;
     }
     .test-section {
-        border: 2px solid #1f77b4;
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
         border-radius: 10px;
         padding: 0.5rem;
         margin: 1rem 0;
-        background-color: #f8f9fa;
+    }
+    .username-section {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        border-radius: 10px;
+        padding: 0.5rem;
+        margin: 1rem 0;
+        color: #0c5460;
     }
     .single-result {
-        background-color: #e8f4f8;
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
         padding: 0.5rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
@@ -100,8 +109,8 @@ st.markdown("""
         to { box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
     }
     .failure-reason {
-        background-color: #fff3cd;
-        border: 1px solid #ffeaa7;
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
         border-radius: 8px;
         padding: 0.5rem;
         margin: 1rem 0;
@@ -143,7 +152,7 @@ st.markdown("""
 <p>We're building an engine (patent pending) that reads your spending notifications — and auto-detects the <strong>merchant, amount, and category</strong>.</p>
 <p>To make it smarter, we need real examples. Here's how you can help:</p>
 <ol>
-<li>📲 Install this app to <strong>record your push notifications</strong> (stored privately on your phone): 👉 <a href="https://play.google.com/store/apps/details?id=com.argonremote.notificationhistory" target="_blank">https://play.google.com/store/apps/details?id=com.argonremote.notificationhistory</a></li>
+<li>📲 Install this app to <strong>record your push notifications</strong> (stored privately on your phone): 👉 <a href="https://play.google.com/store/apps/details?id=com.argonremote.notificationhistory" target="_blank">Click here!</a></li>
 <li>Use your phone as usual — let notifications come in naturally.</li>
 <li>When you spot a <strong>transaction-related notification</strong>, <strong>tap it in the app and copy the text</strong>.</li>
 <li>Paste it into our engine <strong>below.</strong></li>
@@ -172,6 +181,8 @@ if 'test_inputs' not in st.session_state:
     }
 if 'suggested_feedback' not in st.session_state:
     st.session_state.suggested_feedback = None
+if 'username' not in st.session_state:
+    st.session_state.username = None
 
 # Check if default files exist
 default_dict_exists = os.path.exists("dictionary.json")
@@ -186,6 +197,19 @@ config_files_ready = default_dict_exists and default_patterns_exists
 if not config_files_ready:
     st.error("⚠️ Configuration files missing. Please ensure dictionary.json and regex_patterns.json are available.")
     st.stop()
+
+# Username input section
+st.markdown('<div class="username-section">', unsafe_allow_html=True)
+st.subheader("👤 User Information")
+username = st.text_input(
+    "Username (optional)",
+    value=st.session_state.username,
+    placeholder="Enter your name here.",
+    help="This helps us track feedback. Leave blank if you prefer to remain anonymous.",
+    key="username_input"
+)
+st.session_state.username = username if username and username.strip() else None
+st.markdown('</div>', unsafe_allow_html=True)
 
 def get_suggested_feedback(reason_code, reason_description, message, app_label):
     """
@@ -300,10 +324,8 @@ with col1:
             # Store the current notification data in session state BEFORE processing
             st.session_state.current_notification_data = {
                 'message': test_message,
-                'contents': '',
                 'app_label': test_app_label,
-                'package_name': '',
-                'user_id': 'tester',
+                'user_id': st.session_state.username,
                 'notification_id': f"test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             }
             
@@ -324,7 +346,7 @@ with col1:
                         'message': [test_message],
                         'contents': [""],
                         'timestamp': [datetime.now().isoformat()],
-                        'user_id': ['tester']
+                        'user_id': [st.session_state.username]
                     })
                     
                     # Process the single notification
@@ -452,7 +474,37 @@ if st.session_state.single_test_result is not None:
                 key="category_feedback"
             )
             
-            if is_correct == "❌ No, it's wrong":
+            if is_correct == "✅ Yes, it's correct":
+                # Submit button for correct predictions
+                if st.button("✅ Confirm Correct Prediction", type="primary"):
+                    # Use the stored notification data from session state
+                    if st.session_state.current_notification_data:
+                        notification_data = st.session_state.current_notification_data
+                        user_id = st.session_state.username if st.session_state.username else "test_user"
+                        
+                        # Submit feedback for correct prediction
+                        with st.spinner("Submitting feedback..."):
+                            success = FEEDBACK_SYSTEM.submit_feedback(
+                                notification_data=notification_data,
+                                parsed_category=parsed_category,
+                                correct_category="", # Empty if correct
+                                remarks="",  # Empty remarks for correct predictions
+                                user_id=user_id,
+                                is_correct_prediction=True
+                            )
+                            
+                            if success:
+                                st.success("✅ Thank you! Your confirmation has been recorded.")
+                                st.balloons()
+                                # Set a flag to show success message
+                                st.session_state.feedback_submitted = True
+                                st.rerun()
+                            else:
+                                st.error("❌ Failed to submit feedback. Please try again.")
+                    else:
+                        st.error("❌ No notification data available. Please test a notification first.")
+                
+            elif is_correct == "❌ No, it's wrong":
                 # Input for correct category
                 correct_category = st.text_input(
                     "What should be the correct category?",
@@ -467,21 +519,23 @@ if st.session_state.single_test_result is not None:
                     key="feedback_remarks"
                 )
                 
-                # Submit feedback button
-                if st.button("📤 Submit Feedback", type="primary"):
+                # Submit feedback button for incorrect predictions
+                if st.button("📤 Submit Correction", type="primary"):
                     if correct_category.strip():
                         # Use the stored notification data from session state
                         if st.session_state.current_notification_data:
                             notification_data = st.session_state.current_notification_data
+                            user_id = st.session_state.username if st.session_state.username else "test_user"
                             
-                            # Submit feedback
+                            # Submit feedback for incorrect prediction
                             with st.spinner("Submitting feedback..."):
                                 success = FEEDBACK_SYSTEM.submit_feedback(
                                     notification_data=notification_data,
                                     parsed_category=parsed_category,
                                     correct_category=correct_category,
                                     remarks=remarks,
-                                    user_id=notification_data.get('user_id', 'tester')
+                                    user_id=user_id,
+                                    is_correct_prediction=False
                                 )
                                 
                                 if success:
@@ -496,8 +550,6 @@ if st.session_state.single_test_result is not None:
                             st.error("❌ No notification data available. Please test a notification first.")
                     else:
                         st.warning("⚠️ Please enter the correct category.")
-            else:
-                st.success("✅ Great! The parser is working correctly for this transaction.")
         
         with feedback_col2:
             st.info(
@@ -509,14 +561,6 @@ if st.session_state.single_test_result is not None:
                 "- Better understand spending habits"
             )
         
-        # Download single result
-        single_csv = result_data.to_csv(index=False)
-        st.download_button(
-            label="📥 Download Test Result",
-            data=single_csv,
-            file_name=f"test_result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mime="text/csv"
-        )
     else:
         # Show specific failure reason and solution
         if st.session_state.parsing_failure_reason:
@@ -612,7 +656,7 @@ if st.session_state.single_test_result is not None:
                             parsed_category="PARSING_FAILED",
                             correct_category=expected_category,
                             remarks=combined_remarks,
-                            user_id=notification_data.get('user_id', 'tester')
+                            user_id=st.session_state.username
                         )
                         
                         if success:
