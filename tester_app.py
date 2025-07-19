@@ -69,13 +69,13 @@ st.markdown("""
     .test-section {
         border: 2px solid #1f77b4;
         border-radius: 10px;
-        padding: 2rem;
+        padding: 0.5rem;
         margin: 1rem 0;
         background-color: #f8f9fa;
     }
     .single-result {
         background-color: #e8f4f8;
-        padding: 1rem;
+        padding: 0.5rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
     }
@@ -103,7 +103,7 @@ st.markdown("""
         background-color: #fff3cd;
         border: 1px solid #ffeaa7;
         border-radius: 8px;
-        padding: 1rem;
+        padding: 0.5rem;
         margin: 1rem 0;
         color: #856404;
     }
@@ -115,7 +115,7 @@ st.markdown("""
         background-color: #d1ecf1;
         border: 1px solid #bee5eb;
         border-radius: 8px;
-        padding: 1rem;
+        padding: 0.5rem;
         margin: 1rem 0;
         color: #0c5460;
     }
@@ -146,7 +146,7 @@ st.markdown("""
 <li>📲 Install this app to <strong>record your push notifications</strong> (stored privately on your phone): 👉 <a href="https://play.google.com/store/apps/details?id=com.argonremote.notificationhistory" target="_blank">https://play.google.com/store/apps/details?id=com.argonremote.notificationhistory</a></li>
 <li>Use your phone as usual — let notifications come in naturally.</li>
 <li>When you spot a <strong>transaction-related notification</strong>, <strong>tap it in the app and copy the text</strong>.</li>
-<li>Paste it into our engine here: 👉 <a href="https://notification-reader-imkdavmoew4hp3ys4ngkzo.streamlit.app/" target="_blank">https://notification-reader-imkdavmoew4hp3ys4ngkzo.streamlit.app/</a></li>
+<li>Paste it into our engine <strong>below.</strong></li>
 <li>💬 After seeing how it gets categorized, give your feedback <strong>directly in the same page</strong>.</li>
 </ol>
 <p>Every example helps improve accuracy and brings us closer to effortless personal finance tracking.</p>
