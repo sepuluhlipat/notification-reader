@@ -84,21 +84,21 @@
   },
   "merchants": {
     "savings": [
-      "bank mandiri", "mandiri", "bni", "bank bni", "bank bca",
-      "bri", "bank bri", "cimb", "cimb niaga", "danamon", "bank danamon", 
+      "bank mandiri", "mandiri","bank bni", "bank bca",
+      "bank bri", "cimb", "cimb niaga", "danamon", "bank danamon", 
       "maybank", "maybank indonesia", "ocbc", "ocbc nisp", "jago", "bank jago", 
       "blu", "blu by bca", "tmrw", "tmrw by uob", "seabank", "seabank indonesia", 
       "neo", "bank neo", "aladin", "bank aladin", "linkaja", "sakuku", 
       "tcash", "bibit", "ajaib", "bareksa", "stockbit", "pluang", 
       "tokocrypto", "indodax", "akulaku", "kredivo", "spaylater", 
-      "julo", "dana wallet", "gopay", "ovo", "shopeepay"
+      "julo", "dana wallet","shopeepay"
     ],
     "transfer": [
-      "bank mandiri", "mandiri", "bni", "bank bni", 
+      "bank mandiri", "mandiri", "bank bni", 
       "bri", "bank bri", "cimb", "cimb niaga", "danamon", "bank danamon", 
-      "maybank", "maybank indonesia", "ocbc", "ocbc nisp", "jago", "bank jago", 
+      "maybank", "maybank indonesia", "ocbc", "ocbc nisp", "bank jago", 
       "blu", "blu by bca", "tmrw", "tmrw by uob", "seabank", "seabank indonesia", 
-      "neo", "bank neo", "aladin", "bank aladin", "dana", "gopay", "ovo", 
+      "neo", "bank neo", "aladin", "bank aladin",
       "shopeepay", "linkaja", "sakuku", "tcash", "flip", "bibit", "jenius"
     ],
     "shopping": [
