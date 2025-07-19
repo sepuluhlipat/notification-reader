@@ -17,7 +17,7 @@
       "meal", "catering", "grocery", "supermarket", "makanan", "makan", 
       "restoran", "warung", "kantin", "katering", "belanja makanan", 
       "sembako", "pasar", "toko kelontong", "soto", "bakmi jawa",
-      "ketoprak"
+      "ketoprak", "bakery"
     ],
     "transport": [
       "fuel", "gas", "parking", "toll", "public transport", "taxi", 
@@ -84,7 +84,7 @@
   },
   "merchants": {
     "savings": [
-      "bank mandiri", "mandiri", "bca", "bank bca", "bni", "bank bni", 
+      "bank mandiri", "mandiri", "bni", "bank bni", "bank bca",
       "bri", "bank bri", "cimb", "cimb niaga", "danamon", "bank danamon", 
       "maybank", "maybank indonesia", "ocbc", "ocbc nisp", "jago", "bank jago", 
       "blu", "blu by bca", "tmrw", "tmrw by uob", "seabank", "seabank indonesia", 
@@ -94,7 +94,7 @@
       "julo", "dana wallet", "gopay", "ovo", "shopeepay"
     ],
     "transfer": [
-      "bank mandiri", "mandiri", "bca", "bank bca", "bni", "bank bni", 
+      "bank mandiri", "mandiri", "bni", "bank bni", 
       "bri", "bank bri", "cimb", "cimb niaga", "danamon", "bank danamon", 
       "maybank", "maybank indonesia", "ocbc", "ocbc nisp", "jago", "bank jago", 
       "blu", "blu by bca", "tmrw", "tmrw by uob", "seabank", "seabank indonesia", 
